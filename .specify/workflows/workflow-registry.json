@@ -1,0 +1,13 @@
+{
+  "schema_version": "1.0",
+  "workflows": {
+    "speckit": {
+      "name": "Tiered SDD Cycle",
+      "version": "1.1.0",
+      "description": "Runs tiered SDD flow: S0 specify-only, S1 standard, S2 full governance",
+      "source": "bundled",
+      "installed_at": "2026-04-21T09:42:53.190778+00:00",
+      "updated_at": "2026-04-21T09:42:53.190789+00:00"
+    }
+  }
+}

@@ -1,0 +1,78 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <parent>
+        <artifactId>fons4cloud</artifactId>
+        <groupId>com.fons.cloud</groupId>
+        <version>${revision}</version>
+        <relativePath>../pom.xml</relativePath>
+    </parent>
+    <modelVersion>4.0.0</modelVersion>
+
+    <artifactId>fons4cloud-gateway</artifactId>
+    <packaging>jar</packaging>
+    <description>fons4cloud-全局网关-负责鉴权、限流、负载等</description>
+
+    <dependencies>
+        <!-- spring cloud gateway模块 -->
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-gateway</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-loadbalancer</artifactId>
+        </dependency>
+
+        <!-- 注册中心模块 -->
+        <dependency>
+            <groupId>com.fons.cloud</groupId>
+            <artifactId>fons4cloud-nacos-starter</artifactId>
+            <version>${revision}</version>
+        </dependency>
+
+        <!-- dubbo -->
+        <dependency>
+            <groupId>com.fons.cloud</groupId>
+            <artifactId>fons4cloud-dubbo-starter</artifactId>
+            <version>${revision}</version>
+        </dependency>
+
+        <!-- spring security模块 -->
+        <dependency>
+            <groupId>com.fons.cloud</groupId>
+            <artifactId>fons4cloud-auth-spring-security</artifactId>
+            <version>${revision}</version>
+        </dependency>
+
+        <!-- sentinel整合gateway -->
+        <dependency>
+            <groupId>com.alibaba.cloud</groupId>
+            <artifactId>spring-cloud-alibaba-sentinel-gateway</artifactId>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <finalName>gateway-service</finalName>
+        <plugins>
+            <!-- 打包 -->
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+                <version>${springboot.version}</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>repackage</goal> <!-- 将引入的 jar 打入其中 -->
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+
+
+
+</project>

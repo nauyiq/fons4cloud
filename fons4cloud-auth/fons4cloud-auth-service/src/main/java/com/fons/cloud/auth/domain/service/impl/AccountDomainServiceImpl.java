@@ -1,0 +1,54 @@
+package com.fons.cloud.auth.domain.service.impl;
+
+import com.alicp.jetcache.anno.CacheRefresh;
+import com.alicp.jetcache.anno.CacheType;
+import com.alicp.jetcache.anno.Cached;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.fons.cloud.auth.domain.cache.AccountAuthCacheManager;
+import com.fons.cloud.auth.domain.entity.Account;
+import com.fons.cloud.auth.domain.mapper.AccountMapper;
+import com.fons.cloud.auth.domain.service.AccountDomainService;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+
+import java.util.concurrent.TimeUnit;
+
+/**
+ * @author qiyuan.hong
+ * @date 2022-03-10 21:18
+ */
+@Service
+@RequiredArgsConstructor
+public class AccountDomainServiceImpl extends ServiceImpl<AccountMapper, Account> implements AccountDomainService {
+
+
+    @Override
+    @CacheRefresh(refresh = 60, timeUnit = TimeUnit.MINUTES)
+    @Cached(name = AccountAuthCacheManager.ACCOUNT_USER_CACHE_KEY, expire = 1440,  cacheType = CacheType.BOTH, key = "#id", cacheNullValue = true)
+    public Account findById(Long id) {
+        return getBaseMapper().findById(id);
+    }
+
+    @Override
+    public Account findByPhone(String phone) {
+        QueryWrapper<Account> query = Wrappers.query(Account.class);
+        query.eq("phone", phone);
+        return getOne(query);
+    }
+
+    @Override
+    public Account findByEmail(String email) {
+        QueryWrapper<Account> query = Wrappers.query(Account.class);
+        query.eq("email", email);
+        return getOne(query);
+    }
+
+    @Override
+    public Account queryAccountByUniqueIndex(String uniqueIndex) {
+        return getBaseMapper().queryAccountByUniqueIndex(uniqueIndex);
+    }
+
+
+}

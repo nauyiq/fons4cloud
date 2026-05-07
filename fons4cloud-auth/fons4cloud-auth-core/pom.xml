@@ -1,0 +1,42 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>com.fons.cloud</groupId>
+        <artifactId>fons4cloud-auth</artifactId>
+        <version>${revision}</version>
+        <relativePath>../pom.xml</relativePath>
+    </parent>
+
+    <description>认证模块，提供通用的认证用户基础类、接口、鉴权切面等</description>
+    <artifactId>fons4cloud-auth-core</artifactId>
+    <packaging>jar</packaging>
+
+
+    <dependencies>
+        <!--springboot web starter -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+
+        <!-- 限流核心模块 -->
+        <dependency>
+            <groupId>com.fons.cloud</groupId>
+            <artifactId>fons4cloud-common-limiter</artifactId>
+            <version>${revision}</version>
+        </dependency>
+
+        <!-- 账号服务的api, 提供账号服务的远程调用 -->
+        <dependency>
+            <groupId>com.fons.cloud</groupId>
+            <artifactId>fons4cloud-auth-service-api</artifactId>
+            <version>${account.service.api.version}</version>
+        </dependency>
+
+    </dependencies>
+
+
+</project>

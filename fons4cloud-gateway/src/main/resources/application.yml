@@ -1,0 +1,43 @@
+logging:
+  config: classpath:logback.xml
+
+server:
+  port: 9527
+
+spring:
+  application:
+    name: gateway-service
+  main:
+    allow-bean-definition-overriding: true
+    web-application-type: reactive
+
+  config:
+    import:
+      - classpath:nacos_config.yml
+      - nacos:@profiles.active@.yaml
+      - nacos:redis.yaml
+  cloud:
+    gateway:
+      # 动态路由配置
+      dynamic-route:
+        enabled: true
+        type: nacos
+        data-id: gateway-routing.json
+        group: ${NACOS_GROUP:DEFAULT_GROUP}
+      discovery:
+        locator:
+          enabled: true
+    sentinel:
+      datasource:
+        ds:
+          nacos:
+            username: ${NACOS_USERNAME:nacos}
+            password: ${NACOS_PASSWORD:nacos}
+            serverAddr: ${NACOS_SERVER:127.0.0.1:8848}
+            namespace: ${NACOS_NAMESPACE:6ff9c59b-f5a4-4d65-a4f3-2d32eb0fa70d}
+            groupId: ${NACOS_GROUP:DEFAULT_GROUP}
+            dataId: gateway-sentinel-flow
+            data-type: json
+            ruleType: flow
+
+

@@ -1,0 +1,24 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <parent>
+        <artifactId>fons4cloud-common</artifactId>
+        <groupId>com.fons.cloud</groupId>
+        <version>${revision}</version>
+        <relativePath>../pom.xml</relativePath>
+    </parent>
+    <modelVersion>4.0.0</modelVersion>
+
+    <description>db模块</description>
+    <artifactId>fons4cloud-common-db</artifactId>
+    <packaging>pom</packaging>
+
+    <modules>
+        <module>fons4cloud-common-db-core</module>
+        <module>fons4cloud-common-db-datasource</module>
+        <module>fons4cloud-common-db-shardingsphere</module>
+    </modules>
+
+
+</project>

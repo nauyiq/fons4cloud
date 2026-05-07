@@ -1,0 +1,28 @@
+logging:
+  config: classpath:logback.xml
+
+server:
+  port: 8001
+
+spring:
+  application:
+    name: auth-service
+  main:
+    allow-bean-definition-overriding: true
+
+  config:
+    import:
+      - classpath:nacos_config.yml
+      - nacos:@profiles.active@.yaml
+      - nacos:redis.yaml
+      - nacos:datasource-auth.yaml
+
+  freemarker:
+    template-loader-path:
+      - classpath:/template/
+    suffix: .ftl
+  mvc:
+    static-path-pattern: /static/*
+
+
+
