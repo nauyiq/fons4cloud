@@ -48,6 +48,7 @@ public enum ResultCode implements Result {
     FAILED("999991", "失败"),
     INSERT_FAILED("999002", "新增数据失败"),
     UPDATE_FAILED("999003", "更新数据失败"),
+    UNKNOWN_BUSINESS_EXCEPTION("999004", "未知业务异常"),
     SYSTEM_BUSY("999990", "系统繁忙"),
     SYSTEM_INTERVAL_ERROR("999999", "系统内部错误"),
 

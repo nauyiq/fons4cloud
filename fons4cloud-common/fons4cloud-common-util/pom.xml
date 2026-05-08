@@ -16,9 +16,8 @@
     <properties>
         <auth.jwt.version>2.2.0</auth.jwt.version>
         <pinyin4j.version>2.5.1</pinyin4j.version>
-        <hutool.version>5.8.43</hutool.version>
         <jsoup.version>1.13.1</jsoup.version>
-        <fast.json.version>2.0.42</fast.json.version>
+
     </properties>
 
     <dependencies>
@@ -33,13 +32,6 @@
         <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-pool2</artifactId>
-        </dependency>
-
-        <!-- hutool 工具包 -->
-        <dependency>
-            <groupId>cn.hutool</groupId>
-            <artifactId>hutool-all</artifactId>
-            <version>${hutool.version}</version>
         </dependency>
 
         <dependency>
@@ -67,11 +59,6 @@
             <version>4.5.0</version>
         </dependency>
 
-        <dependency>
-            <groupId>com.alibaba.fastjson2</groupId>
-            <artifactId>fastjson2</artifactId>
-            <version>${fast.json.version}</version>
-        </dependency>
 
         <!-- jackson -->
         <dependency>
