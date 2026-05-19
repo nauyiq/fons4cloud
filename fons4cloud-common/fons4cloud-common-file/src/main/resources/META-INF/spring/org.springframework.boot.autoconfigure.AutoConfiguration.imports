@@ -1,1 +1,2 @@
-﻿com.fons.cloud.file.config.UploadFileAutoConfiguration
+com.fons.cloud.file.config.UploadFileAutoConfiguration
+com.fons.cloud.file.config.OssStoreAutoConfiguration

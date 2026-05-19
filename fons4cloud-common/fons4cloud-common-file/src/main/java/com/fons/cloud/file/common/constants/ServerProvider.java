@@ -8,6 +8,8 @@ public enum ServerProvider {
 
     ALI_OSS,
 
+    MINIO,
+
     TENCENT_OSS
 
 
