@@ -11,12 +11,12 @@ import com.aliyun.oss.model.OSSObject;
 import com.aliyun.oss.model.PutObjectRequest;
 import com.aliyun.oss.model.PutObjectResult;
 import com.fons.cloud.common.base.lang.StringConstants;
+import com.fons.cloud.common.result.ResultCode;
 import com.fons.cloud.file.common.CloudSecret;
 import com.fons.cloud.file.common.FileException;
 import com.fons.cloud.file.common.request.FileQueryRequest;
 import com.fons.cloud.file.common.request.FileUploadRequest;
 import com.fons.cloud.file.common.response.FileResponse;
-import com.fons.cloud.file.common.result.FileResultCode;
 import com.fons.cloud.file.config.UploadFileProperties;
 import com.fons.cloud.file.core.AbstractFileService;
 import jakarta.annotation.Resource;
@@ -60,10 +60,10 @@ public class AliCloudFileService extends AbstractFileService {
                 String uri = response.getUri();
                 return FileResponse.ok(uri, path, response.getContent());
             }
-            throw new FileException(FileResultCode.UPLOAD_FAILED);
+            throw new FileException(ResultCode.UPLOAD_FAILED);
         } catch (Exception e) {
             log.error("【文件上传】阿里云oss上传异常， request:{}", fileUploadRequest);
-            throw new FileException(FileResultCode.UPLOAD_EXCEPTION);
+            throw new FileException(ResultCode.UPLOAD_EXCEPTION);
         } finally {
             if (ossClient != null) {
                 ossClient.shutdown();
@@ -90,7 +90,7 @@ public class AliCloudFileService extends AbstractFileService {
             return FileResponse.ok(accessUri, objectName, contentStream);
         } catch (Exception e) {
             log.error("【文件下载】阿里云oss文件下载异常， request:{}", fileQueryRequest);
-            throw new FileException(FileResultCode.DOWNLOAD_FAILED);
+            throw new FileException(ResultCode.DOWNLOAD_FAILED);
         } finally {
             if (ossClient != null) {
                 ossClient.shutdown();

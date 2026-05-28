@@ -1,9 +1,9 @@
 package com.fons.cloud.file.check.support;
 
+import com.fons.cloud.common.result.ResultCode;
 import com.fons.cloud.file.check.FileUploadChecker;
 import com.fons.cloud.file.common.FileException;
 import com.fons.cloud.file.common.request.BaseFileUploadRequest;
-import com.fons.cloud.file.common.result.FileResultCode;
 import com.fons.cloud.file.common.utils.FileUtil;
 
 /**
@@ -16,7 +16,7 @@ public class FileUploadTypeChecker implements FileUploadChecker {
     public void check(BaseFileUploadRequest baseFileUploadRequest) throws FileException {
         String filename = baseFileUploadRequest.getFilename();
         if (!FileUtil.validateFileType(filename)) {
-            throw new FileException(FileResultCode.NOT_SUPPORT_FILE_TYPE);
+            throw new FileException(ResultCode.NOT_SUPPORT_FILE_TYPE);
         }
     }
 }

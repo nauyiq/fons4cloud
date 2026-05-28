@@ -3,13 +3,13 @@ package com.fons.cloud.file.core.oss;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.io.file.FileNameUtil;
 import cn.hutool.core.util.IdUtil;
+import com.fons.cloud.common.result.ResultCode;
 import com.fons.cloud.file.api.OssStoreService;
 import com.fons.cloud.file.common.CloudSecret;
 import com.fons.cloud.file.common.FileException;
 import com.fons.cloud.file.common.request.OssObjectRequest;
 import com.fons.cloud.file.common.request.OssUploadRequest;
 import com.fons.cloud.file.common.response.OssObjectResponse;
-import com.fons.cloud.file.common.result.FileResultCode;
 import org.apache.commons.lang3.StringUtils;
 
 import java.net.URI;
@@ -44,7 +44,7 @@ public abstract class AbstractOssStoreService implements OssStoreService {
     @Override
     public OssObjectResponse upload(OssUploadRequest request) {
         if (request == null || request.getInputStream() == null) {
-            throw new FileException(FileResultCode.FILE_IS_EMPTY);
+            throw new FileException(ResultCode.FILE_IS_EMPTY);
         }
         String objectKey = resolveUploadObjectKey(request);
         request.setObjectKey(objectKey);

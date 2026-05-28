@@ -5,6 +5,7 @@ import com.fons.cloud.file.common.constants.ServerProvider;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 
 import java.util.Map;
 
@@ -16,6 +17,7 @@ import java.util.Map;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@ConfigurationProperties("fons4cloud.upload.oss")
 public class CloudSecret {
 
     /**

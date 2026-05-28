@@ -5,13 +5,13 @@ import cn.hutool.core.io.file.FileNameUtil;
 import cn.hutool.core.lang.Assert;
 import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.StrUtil;
+import com.fons.cloud.common.result.ResultCode;
 import com.fons.cloud.file.api.FileService;
 import com.fons.cloud.file.check.FileUploadCheckerChain;
 import com.fons.cloud.file.common.FileException;
 import com.fons.cloud.file.common.request.BaseFileUploadRequest;
 import com.fons.cloud.file.common.request.FileUploadRequest;
 import com.fons.cloud.file.common.response.FileResponse;
-import com.fons.cloud.file.common.result.FileResultCode;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -31,7 +31,7 @@ public abstract class AbstractFileService implements FileService {
 
     @Override
     public FileResponse uploadFile(BaseFileUploadRequest baseFileUploadRequest) {
-        Assert.isTrue(baseFileUploadRequest == null || baseFileUploadRequest.getInputStream() == null, () -> new FileException(FileResultCode.FILE_IS_EMPTY));
+        Assert.isTrue(baseFileUploadRequest == null || baseFileUploadRequest.getInputStream() == null, () -> new FileException(ResultCode.FILE_IS_EMPTY));
 
         // 文件检查
         fileUploadCheckerChain.check(baseFileUploadRequest);

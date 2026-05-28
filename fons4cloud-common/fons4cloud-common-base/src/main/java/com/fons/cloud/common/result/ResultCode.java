@@ -5,6 +5,8 @@ import lombok.Getter;
 
 /**
  * 接口级别错误码
+ * 通用格式: T 错误类型 (0-9)  + NNN 具体错误序号 (001-999)
+ * 业务模块格式:  前缀 + 通用格式
  * @author qy
  * @date 2021-08-09
  */
@@ -34,7 +36,11 @@ public enum ResultCode implements Result {
 
 
     //  ==================== 文件/oss异常 ====================
-
+    FILE_IS_EMPTY("500001", "不能上传空文件"),
+    NOT_SUPPORT_FILE_TYPE("500002", "不支持的文件类型"),
+    UPLOAD_FAILED("500003", "文件上传失败"),
+    UPLOAD_EXCEPTION("500004", "文件上传异常"),
+    DOWNLOAD_FAILED("500005", "文件下载失败"),
 
     // ==================== 外部错误 ====================
 

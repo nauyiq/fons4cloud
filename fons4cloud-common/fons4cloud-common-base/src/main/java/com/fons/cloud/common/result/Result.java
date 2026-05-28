@@ -1,15 +1,6 @@
 package com.fons.cloud.common.result;
 
 /**
- * <p>
- *     格式: T + MM + NNN
- *      │   │    │
- *      │   │    └── NNN: 具体错误序号 (001-999)
- *      │   └────── MM: 业务模块编码 (00-99)
- *      └────────── T: 错误类型 (0-9)
- *
- *     @see com.fons.cloud.common.result.ResultCodeConstants
- * </p>
  * @author qiyuan.hong
  * @version 1.0
  */

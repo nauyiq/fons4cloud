@@ -1,10 +1,6 @@
 package com.fons.cloud.file.common.request;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-import lombok.ToString;
+import lombok.*;
 import lombok.experimental.Accessors;
 
 import java.io.InputStream;
@@ -19,10 +15,10 @@ import java.util.Map;
  */
 @Getter
 @Setter
+@Builder
 @ToString(exclude = "inputStream")
 @NoArgsConstructor
 @AllArgsConstructor
-@Accessors(chain = true)
 public class OssUploadRequest {
 
     /**
