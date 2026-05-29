@@ -1,5 +1,6 @@
 package com.fons.cloud.common.request;
 
+import cn.hutool.core.map.MapUtil;
 import lombok.Getter;
 
 import java.io.Serializable;
@@ -29,6 +30,15 @@ public class ParameterRequest implements Serializable {
     public String getString(String key, String defaultValue) {
         return (String) this.parameters.getOrDefault(key, defaultValue);
     }
+
+    public Integer getInteger(String key, Integer defaultValue) {
+        return MapUtil.getInt(this.parameters, key, defaultValue);
+    }
+
+    public Boolean getBoolean(String key, Boolean defaultValue) {
+        return MapUtil.getBool(this.parameters, key, defaultValue);
+    }
+
 
     @SuppressWarnings("unchecked")
     public <T> T getObj(String key, T defaultValue) {
