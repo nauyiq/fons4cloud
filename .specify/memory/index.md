@@ -4,7 +4,7 @@
 > 项目类型：技术框架/基础设施项目
 > 知识状态：基线已建立
 > 确认状态：已确认
-> 更新日期：2026-06-25
+> 更新日期：2026-06-26
 
 ## 1. 项目简介
 
@@ -23,6 +23,8 @@
 | 项目配置与资源总览 | `.specify/memory/项目配置与资源架构文档.md` | 已生成 |
 | 技术能力知识 | `.specify/memory/capabilities/{capability-slug}/` | 按能力建模 |
 | MQ 抽象与多中间件适配 | `.specify/memory/capabilities/mq-adaptation/` | 已建模 |
+| 授权服务 | `.specify/memory/capabilities/authorization-service/` | 已建模 |
+| 网关服务 | `.specify/memory/capabilities/gateway-service/` | 已建模 |
 
 ## 3. 技术能力域索引
 
@@ -30,6 +32,8 @@
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | 云基础能力框架 | `cloud-foundation-framework` | 负责 Java 微服务运行所需的基础能力封装与接入约束，包括公共模型与工具、认证鉴权、网关、MQ 抽象与多中间件适配、缓存、数据库接入、分布式锁、限流、任务调度、事务/Canal、文件存储、可观测性、Nacos/Dubbo Starter。 | 已确认 | `.specify/memory/项目技术能力架构文档.md` | `.specify/memory/项目运行架构文档.md` | `.specify/memory/项目配置与资源架构文档.md` | 候选，待技术能力建模 |
 | MQ 抽象与多中间件适配 | `mq-adaptation` | 负责消息发送、消息消费抽象、事务消息、本地消息表协作、动态消息资源初始化、Canal 消息监听转发，以及 Kafka/RabbitMQ/RocketMQ 三类中间件适配差异。 | 已确认 | `.specify/memory/capabilities/mq-adaptation/MQ抽象与多中间件适配能力文档.md` | `.specify/memory/capabilities/mq-adaptation/MQ抽象与多中间件适配运行文档.md` | `.specify/memory/capabilities/mq-adaptation/MQ抽象与多中间件适配配置与资源文档.md` | 已建模 |
+| 授权服务 | `authorization-service` | 负责账号认证、OAuth2 授权服务器、Token 生成/刷新/吊销、Redis Token 存储、认证服务 RPC Facade、权限资源注册与校验，以及供资源服务或网关消费的 Token 内省能力。 | 已确认 | `.specify/memory/capabilities/authorization-service/授权服务能力文档.md` | `.specify/memory/capabilities/authorization-service/授权服务运行文档.md` | `.specify/memory/capabilities/authorization-service/授权服务配置与资源文档.md` | 已建模 |
+| 网关服务 | `gateway-service` | 负责统一入口转发、Nacos 动态路由加载与刷新、服务发现路由、资源服务器鉴权、Token 内省消费、认证用户透传、请求体包装、HTTP 节流风控、Sentinel 网关流控响应和验证码入口。 | 已确认 | `.specify/memory/capabilities/gateway-service/网关服务能力文档.md` | `.specify/memory/capabilities/gateway-service/网关服务运行文档.md` | `.specify/memory/capabilities/gateway-service/网关服务配置与资源文档.md` | 已建模 |
 
 ## 4. 核心平台能力索引
 
@@ -37,10 +41,10 @@
 | --- | --- | --- | --- | --- |
 | 依赖与版本管理 | 云基础能力框架 | 根 POM 统一管理 JDK、Spring Boot、Spring Cloud、Spring Cloud Alibaba、Dubbo 等版本。 | 是 | 待建模 |
 | 公共模型与工具 | 云基础能力框架 | `fons4cloud-common-base`、`fons4cloud-common-util` 提供结果模型、请求模型、异常、转换器、并发工具等基础对象。 | 否 | 待建模 |
-| 认证鉴权与安全资源扫描 | 云基础能力框架 | `fons4cloud-auth` 提供 auth core、spring security、service API 和认证服务能力。 | 是 | 待建模 |
-| OAuth2/Token 支撑 | 云基础能力框架 | 认证模块和网关模块存在 OAuth2、Token、客户端鉴权相关对象。 | 是 | 待建模 |
-| 网关接入与动态路由 | 云基础能力框架 | `fons4cloud-gateway` 基于 Spring Cloud Gateway，配置动态路由、服务发现和 Nacos 路由数据。 | 是 | 待建模 |
-| 网关鉴权与限流 | 云基础能力框架 | 网关模块包含鉴权过滤器、请求包装过滤器、Sentinel 网关流控配置和限流处理。 | 是 | 待建模 |
+| 认证鉴权与安全资源扫描 | 云基础能力框架 | `fons4cloud-auth` 提供 auth core、spring security、service API 和认证服务能力。 | 是 | 已建模：`.specify/memory/capabilities/authorization-service/` |
+| OAuth2/Token 支撑 | 云基础能力框架 | 认证模块和网关模块存在 OAuth2、Token、客户端鉴权相关对象。 | 是 | 已建模：`.specify/memory/capabilities/authorization-service/`；网关消费链路待单独建模 |
+| 网关接入与动态路由 | 云基础能力框架 | `fons4cloud-gateway` 基于 Spring Cloud Gateway，配置动态路由、服务发现和 Nacos 路由数据。 | 是 | 已建模：`.specify/memory/capabilities/gateway-service/` |
+| 网关鉴权与限流 | 云基础能力框架 | 网关模块包含鉴权过滤器、请求包装过滤器、Sentinel 网关流控配置和限流处理。 | 是 | 已建模：`.specify/memory/capabilities/gateway-service/` |
 | MQ 抽象与多中间件适配 | 云基础能力框架 | `fons4cloud-mq` 覆盖 API、common、Kafka、RabbitMQ、RocketMQ，并提供 Producer、Factory、Message 抽象与实现。 | 是 | 已建模：`.specify/memory/capabilities/mq-adaptation/` |
 | 缓存与 Redis Stream | 云基础能力框架 | `fons4cloud-common-cache` 提供缓存自动配置、Redis 操作封装和 Redis Stream 相关支持。 | 是 | 待建模 |
 | 数据库接入与分库分表 | 云基础能力框架 | `fons4cloud-common-db` 覆盖 db-core、datasource、shardingsphere。 | 是 | 待建模 |
