@@ -1,2 +1,2 @@
-﻿com.fons.cloud.datasource.druid.config.DruidAutoConfiguration
+com.fons.cloud.datasource.druid.config.DruidAutoConfiguration
 com.fons.cloud.datasource.config.DatasourceAutoConfiguration

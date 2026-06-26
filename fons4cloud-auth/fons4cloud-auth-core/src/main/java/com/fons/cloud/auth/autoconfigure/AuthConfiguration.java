@@ -9,12 +9,10 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 /**
- * @author qiyuan.hong
- * @version 1.0
- * @date 2024/6/20
+ * @author hongqy
  */
 @Configuration
-public class AuthAutoConfiguration {
+public class AuthConfiguration {
 
     @Bean
     public AuthPermissionService authPermissionService(AuthorizationResourceRepository authorizationResourceRepository, ManualWhiteIpService manualWhiteIpService) {
@@ -24,7 +22,5 @@ public class AuthAutoConfiguration {
     public AuthorizationResourceRepository authorizationResourceRepository(RedissonClient redissonClient) {
         return new AuthorizationResourceRepository(redissonClient);
     }
-
-
 
 }

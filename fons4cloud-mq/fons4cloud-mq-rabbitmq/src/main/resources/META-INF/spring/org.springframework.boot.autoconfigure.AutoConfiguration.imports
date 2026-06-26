@@ -1,2 +1,2 @@
-﻿com.fons.cloud.mq.rabbit.config.RabbitmqAutoConfiguration
+com.fons.cloud.mq.rabbit.config.RabbitmqAutoConfiguration
 com.fons.cloud.mq.rabbit.dynamic.RabbitModuleProperties

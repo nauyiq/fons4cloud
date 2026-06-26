@@ -1,2 +1,2 @@
-﻿com.fons.cloud.limiter.autoconfigure.LimiterAutoConfiguration
+com.fons.cloud.limiter.autoconfigure.LimiterAutoConfiguration
 com.fons.cloud.limiter.autoconfigure.SentinelAutoConfiguration

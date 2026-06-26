@@ -1,2 +1,2 @@
-﻿com.fons.cloud.cache.config.CacheAutoConfiguration
+com.fons.cloud.cache.config.CacheAutoConfiguration
 com.fons.cloud.cache.config.IRedisAutoConfiguration

@@ -1,4 +1,4 @@
-﻿com.fons.cloud.mq.kafka.dynamic.KafkaTopicsInitializer
+com.fons.cloud.mq.kafka.dynamic.KafkaTopicsInitializer
 com.fons.cloud.mq.kafka.config.KafkaDefaultAutoConfiguration
 com.fons.cloud.mq.kafka.dynamic.KafkaTopicsProperties
 com.fons.cloud.mq.kafka.config.CanalListenerConfiguration
