@@ -14,7 +14,7 @@ import java.time.Duration;
  * @date 2023/5/25 10:24
  */
 @Data
-@ConfigurationProperties("fons4cloud.upload")
+@ConfigurationProperties("sys.upload")
 public class UploadFileProperties {
 
     /**

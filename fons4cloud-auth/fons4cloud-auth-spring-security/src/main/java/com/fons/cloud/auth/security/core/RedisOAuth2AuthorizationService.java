@@ -39,7 +39,7 @@ public class RedisOAuth2AuthorizationService implements OAuth2AuthorizationServi
     private final static Long TIMEOUT = 10L;
     private final RedisTemplate<String, Object> redisTemplate;
 
-    @Value("${fons4cloud.token.max-size:2}")
+    @Value("${sys.token.max-size:2}")
     private int maxSize;
     private static final Cache<String, List<String>> ACCESS_TOKEN_CACHE = Caffeine.newBuilder().expireAfterWrite(1, TimeUnit.HOURS).maximumSize(10240).build();
     private static final Cache<String, List<String>> REFRESH_TOKEN_CACHE = Caffeine.newBuilder().expireAfterWrite(1, TimeUnit.DAYS).maximumSize(10240).build();

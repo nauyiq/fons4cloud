@@ -20,7 +20,7 @@ import org.springframework.context.annotation.Configuration;
  */
 @Configuration
 @EnableConfigurationProperties({UploadFileProperties.class, CloudSecret.class})
-@ConditionalOnProperty(prefix = "fons4cloud.upload.oss", name = "enabled", havingValue = "true")
+@ConditionalOnProperty(prefix = "sys.upload.oss", name = "enabled", havingValue = "true")
 public class OssStoreAutoConfiguration {
 
     @Bean

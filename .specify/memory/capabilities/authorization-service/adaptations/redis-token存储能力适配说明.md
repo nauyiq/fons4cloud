@@ -12,7 +12,7 @@
 - 适配对象：`OAuth2AuthorizationService` 的 Redis 实现。
 - 适用技术能力：Token 保存、刷新、吊销、HTTP Token 校验、Opaque Token 内省。
 - 适用运行环境/部署形态：依赖 RedisTemplate 的授权服务和资源服务/网关 Token 内省场景。
-- 关键配置：Redis 连接配置、`fons4cloud.token.max-size`、Redis 序列化开关、Token 数量限制开关。
+- 关键配置：Redis 连接配置、`sys.token.max-size`、Redis 序列化开关、Token 数量限制开关。
 - 不适用范围：不定义 Redis 集群部署、库隔离、key 清理策略和生产监控。
 - 可信度说明：Redis key、TTL、存取删逻辑来自源码；生产配置和开关默认值待确认。
 
@@ -46,13 +46,13 @@ sequenceDiagram
 | CAR-REDIS-003 | authorization code 按 code 过期时间保存。 | 包含 authorization code。 | Redis TTL 等于 code issuedAt/expiresAt 差值。 | 属于授权码场景。 | 已验证 |
 | CAR-REDIS-004 | access/refresh token 按自身过期时间保存。 | 包含 access 或 refresh token。 | Redis TTL 等于 token issuedAt/expiresAt 差值。 | 由 TokenSettings 决定。 | 已验证 |
 | CAR-REDIS-005 | Token 内省通过 `findByToken` 查 access token。 | 资源服务或网关调用内省。 | token 不存在则抛 invalid bearer token。 | 适用于 opaque token。 | 已验证 |
-| CAR-REDIS-006 | 单用户 Token 数量限制由开关控制。 | `ENABLE_LIMIT_ACCESS_TOKEN_GENERATE_COUNT` 开启。 | 超过 `fons4cloud.token.max-size` 删除最早本地缓存 token。 | 生产开关值待确认。 | 待确认 |
+| CAR-REDIS-006 | 单用户 Token 数量限制由开关控制。 | `ENABLE_LIMIT_ACCESS_TOKEN_GENERATE_COUNT` 开启。 | 超过 `sys.token.max-size` 删除最早本地缓存 token。 | 生产开关值待确认。 | 待确认 |
 
 ## 4. 配置、资源与依赖差异
 
 | 类型 | 差异项 | 说明 | 证据 |
 | --- | --- | --- | --- |
-| 配置 | `fons4cloud.token.max-size` | 单用户 Token 数量上限，默认 2。 | `RedisOAuth2AuthorizationService.java` |
+| 配置 | `sys.token.max-size` | 单用户 Token 数量上限，默认 2。 | `RedisOAuth2AuthorizationService.java` |
 | 配置 | Redis 序列化开关 | 关闭 JSON 序列化时改用 Java 序列化器。 | `RedisOAuth2AuthorizationService.java` |
 | 配置 | Token 数量限制开关 | 开启后异步限制 access/refresh token 数量。 | `RedisOAuth2AuthorizationService.java` |
 | 依赖 | `RedisTemplate<String,Object>` | Token 存取底层客户端。 | `RedisOAuth2AuthorizationService.java` |

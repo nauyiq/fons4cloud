@@ -41,6 +41,7 @@ import org.springframework.security.oauth2.server.authorization.web.authenticati
 import org.springframework.security.web.DefaultSecurityFilterChain;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.AuthenticationConverter;
+import org.springframework.security.web.util.matcher.RequestMatcher;
 
 import java.util.Arrays;
 
@@ -89,8 +90,10 @@ public class AuthorizationServerAutoConfiguration {
     public SecurityFilterChain authorizationServerSecurityFilterChain(HttpSecurity http, OAuth2TokenGenerator oAuth2TokenGenerator,
                                                                       MessageSource securityMessageSource, OAuth2AuthorizationService oAuth2AuthorizationService) throws Exception {
         OAuth2AuthorizationServerConfigurer authorizationServerConfigurer = new OAuth2AuthorizationServerConfigurer();
+        RequestMatcher authorizationServerEndpointsMatcher = authorizationServerConfigurer.getEndpointsMatcher();
 
         http
+                .securityMatcher(authorizationServerEndpointsMatcher)
                 //个性化认证授权端点
                 .with(authorizationServerConfigurer
 

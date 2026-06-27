@@ -28,7 +28,7 @@ public abstract class AbstractOssStoreService implements OssStoreService {
     private static final String OSS_CONFIG_ERROR_CODE = "OSS_CONFIG_INVALID";
     private static final String OSS_OBJECT_ERROR_CODE = "OSS_OBJECT_INVALID";
     private static final String OSS_OPERATION_ERROR_CODE = "OSS_OPERATION_FAILED";
-    private static final String OSS_CONFIG_ERROR_MESSAGE = "fons4cloud.upload.oss config is incomplete";
+    private static final String OSS_CONFIG_ERROR_MESSAGE = "sys.upload.oss config is incomplete";
     private static final String OSS_OBJECT_ERROR_MESSAGE = "OSS objectKey or accessUri is required";
     private static final String OSS_OPERATION_ERROR_MESSAGE = "OSS operation failed";
 

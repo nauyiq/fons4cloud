@@ -11,7 +11,7 @@ import java.util.List;
  * @date 2022/5/31 9:46
  */
 @Data
-@ConfigurationProperties(prefix = "fons4cloud.spring.rabbitmq")
+@ConfigurationProperties(prefix = "sys.spring.rabbitmq")
 public class RabbitModuleProperties {
 
     private List<RabbitMetadata> modules;

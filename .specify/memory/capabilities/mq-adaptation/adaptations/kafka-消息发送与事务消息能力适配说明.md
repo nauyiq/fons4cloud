@@ -12,7 +12,7 @@
 - 适配对象：Spring Kafka。
 - 适用技术能力：消息发送、Kafka 事务 Producer、Kafka Listener 容器、Canal 批量消息监听。
 - 适用运行环境/部署形态：引入 `fons4cloud-mq-kafka` 并配置 `spring.kafka.*` 的 Spring Boot 应用。
-- 关键配置：`spring.kafka.bootstrap-servers`、producer/consumer/listener 配置、`spring.kafka.producer.transaction-id-prefix`、`fons4cloud.kafka.config.topics`。
+- 关键配置：`spring.kafka.bootstrap-servers`、producer/consumer/listener 配置、`spring.kafka.producer.transaction-id-prefix`、`sys.kafka.config.topics`。
 - 不适用范围：不定义业务 Topic 语义，不确认生产 Kafka 集群和 Topic 权限，不生成本地事务消息表 DDL。
 - 可信度说明：发送、自动配置和 Canal Listener 来自源码；动态 Topic 创建逻辑存在但核心声明代码被注释，标为待确认。
 
@@ -55,7 +55,7 @@ sequenceDiagram
 | 类型 | 差异项 | 说明 | 证据 |
 | --- | --- | --- | --- |
 | 配置 | `spring.kafka.*` | 控制 Kafka producer、consumer、listener、transaction-id-prefix。 | `fons4cloud-mq-kafka/src/main/resources/kafka-config.yml` |
-| 配置 | `fons4cloud.kafka.config.topics` | Topic 动态配置对象。 | `KafkaTopicsProperties.java` |
+| 配置 | `sys.kafka.config.topics` | Topic 动态配置对象。 | `KafkaTopicsProperties.java` |
 | 依赖 | `spring-kafka` | Kafka 客户端能力来源。 | `fons4cloud-mq-kafka/pom.xml` |
 | 资源 | Kafka Topic/partition/group | Kafka 发送和消费目标资源。 | `KafkaStreamMessage.java`、`KafkaDefaultAutoConfiguration.java` |
 | 运行 | `KafkaTemplate` | 发送实现的底层客户端。 | `KafkaProducer.java` |

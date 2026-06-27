@@ -32,7 +32,7 @@ public interface ConfigConstants {
     int DEFAULT_SOCKET_CLUSTER_HASH = 0;
     boolean DEFAULT_SOCKET_ENABLE_CLUSTER = false;
 
-    String DISCOVERY_IP = "fons4cloud.discovery.ip";
+    String DISCOVERY_IP = "sys.discovery.ip";
 
 
 

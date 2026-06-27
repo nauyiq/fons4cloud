@@ -17,7 +17,7 @@ import java.util.Map;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@ConfigurationProperties("fons4cloud.upload.oss")
+@ConfigurationProperties("sys.upload.oss")
 public class CloudSecret {
 
     /**

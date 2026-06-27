@@ -39,8 +39,6 @@ public class SecurityWebAutoConfiguration {
                 .anyRequest().authenticated())
             // 避免iframe同源无法登录
             .headers(c -> c.frameOptions(HeadersConfigurer.FrameOptionsConfig::sameOrigin))
-            // druid监控页面允许iframe
-            .securityMatcher("/druid").headers(c -> c.frameOptions(HeadersConfigurer.FrameOptionsConfig::disable))
             .with(new FormIdentityLoginConfigurer(), c -> {});
 
 

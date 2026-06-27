@@ -17,7 +17,7 @@ import java.util.List;
 @Configuration
 @NoArgsConstructor
 @AllArgsConstructor
-@ConfigurationProperties(prefix = "fons4cloud.kafka.config", ignoreInvalidFields = true)
+@ConfigurationProperties(prefix = "sys.kafka.config", ignoreInvalidFields = true)
 public class KafkaTopicsProperties {
 
     private List<Topics> topics;

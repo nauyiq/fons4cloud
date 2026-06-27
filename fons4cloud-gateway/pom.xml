@@ -18,7 +18,13 @@
         <!-- spring cloud gateway模块 -->
         <dependency>
             <groupId>org.springframework.cloud</groupId>
-            <artifactId>spring-cloud-starter-gateway</artifactId>
+            <artifactId>spring-cloud-starter-gateway-server-webflux</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>com.fons.cloud</groupId>
+            <artifactId>fons4cloud-common-skywalking</artifactId>
+            <version>${revision}</version>
         </dependency>
 
         <dependency>

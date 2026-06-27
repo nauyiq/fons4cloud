@@ -21,8 +21,8 @@
 | `spring.kafka.producer.transaction-id-prefix` | Kafka 事务 Producer 前缀。 | `tx_` 样例 | Kafka | 只有存在该配置时才创建 `KafkaTransactionManager`。 | 已验证 |
 | `spring.kafka.consumer.enable-auto-commit` | Kafka 是否自动提交 offset。 | 样例中同时出现 `false` 和 `true` | Kafka | 配置文件存在差异，需按环境确认。 | 待确认 |
 | `spring.kafka.listener.ack-mode` | Kafka Listener ack 模式。 | `manual` 样例 | Kafka | 自动配置中 batch/single factory 设置 `MANUAL_IMMEDIATE`。 | 已验证 |
-| `fons4cloud.kafka.config.topics` | Kafka 动态 Topic 配置列表。 | 无 | Kafka | 初始化器中实际创建 Topic 的代码被注释。 | 待确认 |
-| `fons4cloud.spring.rabbitmq.modules` | RabbitMQ 队列、交换机、绑定配置。 | 无 | RabbitMQ | 配置缺失则不创建资源；配置错误会断言失败。 | 已验证 |
+| `sys.kafka.config.topics` | Kafka 动态 Topic 配置列表。 | 无 | Kafka | 初始化器中实际创建 Topic 的代码被注释。 | 待确认 |
+| `sys.spring.rabbitmq.modules` | RabbitMQ 队列、交换机、绑定配置。 | 无 | RabbitMQ | 配置缺失则不创建资源；配置错误会断言失败。 | 已验证 |
 | `rocketmq.name-server` | RocketMQ NameServer 地址。 | `${ROCKETMQ_SERVER:127.0.0.1:9876}` | RocketMQ Template | 生产地址需由环境变量或配置中心提供。 | 已验证 |
 | `spring.cloud.stream.rocketmq.binder.name-server` | Spring Cloud Stream RocketMQ Binder NameServer。 | `${ROCKETMQ_SERVER:127.0.0.1:9876}` | RocketMQ StreamBridge | 与 RocketMQ 原生 Template 共用环境变量但链路不同。 | 已验证 |
 | `rocketmq.broker.check` | 是否检查 RocketMQ Broker 强依赖。 | `false` 样例 | RocketMQ | 配置注释说明存在强依赖与弱依赖两种使用方式。 | 已验证 |
@@ -53,13 +53,13 @@ flowchart LR
 | 能力 | 适配对象 | 关键配置 | 资源依赖 | 权限/密钥 | 数据/文件路径 | 状态 |
 | --- | --- | --- | --- | --- | --- | --- |
 | 消息发送 | Kafka | `spring.kafka.*` | Kafka Topic、partition、KafkaTemplate | Kafka 集群权限待确认 | 无 | 已验证 |
-| 消息发送 | RabbitMQ | Spring AMQP 配置、`fons4cloud.spring.rabbitmq.modules` | Exchange、Queue、Binding、routingKey、RabbitTemplate | RabbitMQ vhost/user 权限待确认 | 无 | 已验证 |
+| 消息发送 | RabbitMQ | Spring AMQP 配置、`sys.spring.rabbitmq.modules` | Exchange、Queue、Binding、routingKey、RabbitTemplate | RabbitMQ vhost/user 权限待确认 | 无 | 已验证 |
 | 消息发送 | RocketMQ Template | `rocketmq.name-server`、`rocketmq.broker.check` | Topic、tags、NameServer、Broker、RocketMQTemplate | RocketMQ ACL 待确认 | 无 | 已验证 |
 | 消息发送 | RocketMQ StreamBridge | `spring.cloud.stream.rocketmq.binder.name-server`、bindingName | Binder binding、Topic、tags、StreamBridge | RocketMQ ACL 待确认 | 无 | 已验证 |
 | 事务消息 | Kafka/RabbitMQ | `MqMessageOperations` 实现和本地消息存储 | 本地事务消息表、Kafka/Rabbit Producer | 数据库权限待确认 | 本地消息表 DDL 未确认 | 待确认 |
 | Canal 转发 | Kafka/Rabbit/Rocket | Listener 注解或容器配置 | Canal 消息 Topic/Queue、`CanalGlue` | MQ 消费权限待确认 | 无 | 已验证 |
-| 动态资源初始化 | Kafka | `fons4cloud.kafka.config.topics` | Kafka AdminClient、Topic | Topic 创建权限待确认 | 无 | 待确认 |
-| 动态资源初始化 | RabbitMQ | `fons4cloud.spring.rabbitmq.modules` | Queue、Exchange、Binding、AmqpAdmin | 资源声明权限待确认 | 无 | 已验证 |
+| 动态资源初始化 | Kafka | `sys.kafka.config.topics` | Kafka AdminClient、Topic | Topic 创建权限待确认 | 无 | 待确认 |
+| 动态资源初始化 | RabbitMQ | `sys.spring.rabbitmq.modules` | Queue、Exchange、Binding、AmqpAdmin | 资源声明权限待确认 | 无 | 已验证 |
 
 ## 5. 数据与资源治理
 

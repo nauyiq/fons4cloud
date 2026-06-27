@@ -11,8 +11,8 @@
 
 - 适配对象：Spring AMQP RabbitMQ。
 - 适用技术能力：RabbitMQ 消息发送、确认回调、动态 Queue/Exchange/Binding 声明、Rabbit Canal 监听、本地事务消息骨架。
-- 适用运行环境/部署形态：引入 `fons4cloud-mq-rabbitmq` 并配置 RabbitMQ 连接与 `fons4cloud.spring.rabbitmq.modules` 的 Spring Boot 应用。
-- 关键配置：RabbitMQ 连接配置、`fons4cloud.spring.rabbitmq.modules`、Queue/Exchange/Binding 元数据。
+- 适用运行环境/部署形态：引入 `fons4cloud-mq-rabbitmq` 并配置 RabbitMQ 连接与 `sys.spring.rabbitmq.modules` 的 Spring Boot 应用。
+- 关键配置：RabbitMQ 连接配置、`sys.spring.rabbitmq.modules`、Queue/Exchange/Binding 元数据。
 - 不适用范围：不定义业务 routingKey 语义，不确认生产 vhost/user 权限，不设计死信队列业务处理流程。
 - 可信度说明：发送、动态声明和 Canal Listener 来自源码；生产资源权限和命名规范待确认。
 
@@ -54,7 +54,7 @@ sequenceDiagram
 
 | 类型 | 差异项 | 说明 | 证据 |
 | --- | --- | --- | --- |
-| 配置 | `fons4cloud.spring.rabbitmq.modules` | 定义 Queue、Exchange、Binding 元数据。 | `RabbitModuleProperties.java` |
+| 配置 | `sys.spring.rabbitmq.modules` | 定义 Queue、Exchange、Binding 元数据。 | `RabbitModuleProperties.java` |
 | 配置 | Queue 参数 | durable、exclusive、autoDelete、deadLetterExchange、deadLetterRoutingKey、arguments。 | `RabbitMetadata.java` |
 | 配置 | Exchange 参数 | type、name、durable、autoDelete、arguments。 | `RabbitMetadata.java`、`ExchangeEnum.java` |
 | 依赖 | `spring-boot-starter-amqp` | RabbitMQ 客户端能力来源。 | `fons4cloud-mq-rabbitmq/pom.xml` |
