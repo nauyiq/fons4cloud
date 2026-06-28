@@ -27,6 +27,10 @@ public class MybatisDataHandler implements MetaObjectHandler {
 
 
     private void setFieldValByNameIfNull(String fieldName, Object fieldVal, MetaObject metaObject) {
+        if (!metaObject.hasGetter(fieldName) || !metaObject.hasSetter(fieldName)) {
+            return;
+        }
+
         if (metaObject.getValue(fieldName) == null) {
             this.setFieldValByName(fieldName, fieldVal, metaObject);
         }
