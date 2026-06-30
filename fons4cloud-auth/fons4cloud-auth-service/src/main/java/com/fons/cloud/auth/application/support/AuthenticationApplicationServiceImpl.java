@@ -23,7 +23,7 @@ import com.fons.cloud.auth.security.core.SecurityAuthUser;
 import com.fons.cloud.common.base.exception.BizException;
 import com.fons.cloud.common.result.ResultCode;
 import com.fons.cloud.cache.random.RandomCodeScene;
-import com.fons.cloud.cache.random.RandomCodeService;
+import com.fons.cloud.cache.random.RandomCodeFacade;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
@@ -61,7 +61,7 @@ public class AuthenticationApplicationServiceImpl implements AuthenticationAppli
     private final UserDetailsServiceWrapper userDetailsService;
     private final OAuth2TokenGenerator<? extends OAuth2Token> tokenGenerator;
     private final DefaultRegisteredClientRepository registeredClientRepository;
-    private final RandomCodeService randomCodeService;
+    private final RandomCodeFacade randomCodeFacade;
     private final OAuth2AuthorizationService authorizationService;
 
 
@@ -231,8 +231,8 @@ public class AuthenticationApplicationServiceImpl implements AuthenticationAppli
         SecurityAuthUser securityAuthUser = (SecurityAuthUser) userDetails;
         switch (grantType) {
             case PASSWORD -> Assert.isTrue(passwordEncoder.matches(request.getAccessSecret(), userDetails.getPassword()), () -> new BizException(AccountResultCode.INCORRECT_PASSWORD));
-            case SMS -> Assert.isTrue(randomCodeService.isExist(request.getAccessSecret(), request.getAccessAccount(), request.getClientId(), RandomCodeScene.SMS_AUTH), () -> new BizException(AccountResultCode.VERIFY_CODE_ERROR));
-            case EMAIL -> Assert.isTrue(randomCodeService.isExist(request.getAccessSecret(), request.getAccessAccount(), request.getClientId(), RandomCodeScene.EMAIL_AUTH), () -> new BizException(AccountResultCode.VERIFY_CODE_ERROR));
+            case SMS -> Assert.isTrue(randomCodeFacade.isExist(request.getAccessSecret(), request.getAccessAccount(), request.getClientId(), RandomCodeScene.SMS_AUTH), () -> new BizException(AccountResultCode.VERIFY_CODE_ERROR));
+            case EMAIL -> Assert.isTrue(randomCodeFacade.isExist(request.getAccessSecret(), request.getAccessAccount(), request.getClientId(), RandomCodeScene.EMAIL_AUTH), () -> new BizException(AccountResultCode.VERIFY_CODE_ERROR));
         }
         return securityAuthUser;
     }

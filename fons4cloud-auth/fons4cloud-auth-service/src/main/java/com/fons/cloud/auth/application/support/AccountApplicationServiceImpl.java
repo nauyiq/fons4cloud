@@ -19,7 +19,7 @@ import com.fons.cloud.auth.infrastructure.certification.service.AuthService;
 import com.fons.cloud.common.base.exception.BizException;
 import com.fons.cloud.common.result.ResultCode;
 import com.fons.cloud.cache.random.RandomCodeScene;
-import com.fons.cloud.cache.random.RandomCodeService;
+import com.fons.cloud.cache.random.RandomCodeFacade;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -40,7 +40,7 @@ import java.util.Date;
 @RequiredArgsConstructor
 public class AccountApplicationServiceImpl implements AccountApplicationService {
     private final RedissonClient redissonClient;
-    private final RandomCodeService randomCodeService;
+    private final RandomCodeFacade randomCodeFacade;
 
     private final AuthService authService;
     private final AccountDomainService accountDomainService;
@@ -102,7 +102,7 @@ public class AccountApplicationServiceImpl implements AccountApplicationService 
 
     private void validRegisterSecret(AuthenticateRequest request) {
         if (request.getGrantType() == GrantType.SMS || request.getGrantType() == GrantType.EMAIL) {
-            Assert.isTrue(randomCodeService.isExist(request.getAccessSecret(), request.getAccessAccount(), request.getClientId(),
+            Assert.isTrue(randomCodeFacade.isExist(request.getAccessSecret(), request.getAccessAccount(), request.getClientId(),
                     request.getGrantType() == GrantType.SMS ? RandomCodeScene.SMS_AUTH : RandomCodeScene.EMAIL_AUTH), () -> new BizException(AccountResultCode.VERIFY_CODE_ERROR));
         }
     }

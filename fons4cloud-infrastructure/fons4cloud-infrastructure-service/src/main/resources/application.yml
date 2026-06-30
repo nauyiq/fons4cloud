@@ -1,0 +1,14 @@
+logging:
+  config: classpath:logback.xml
+server:
+  port: 8002
+
+spring:
+  application:
+    name: infrastructure-service
+  config:
+    import:
+      - classpath:nacos_config.yml
+      - nacos:@profiles.active@.yaml
+      - nacos:redis.yaml
+

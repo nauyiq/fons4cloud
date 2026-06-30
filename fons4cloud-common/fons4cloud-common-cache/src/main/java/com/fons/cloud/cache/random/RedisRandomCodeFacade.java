@@ -16,26 +16,26 @@ import java.util.concurrent.TimeUnit;
  * @date 2024/7/2
  */
 @Slf4j
-public class RedisRandomCodeService implements RandomCodeService {
+public class RedisRandomCodeFacade implements RandomCodeFacade {
 
     @Override
-    public String randomNumber(int length, int expired, TimeUnit timeUnit, RandomCodeScene scene, String clientId, String value) {
+    public String randomNumber(int length, int expired, TimeUnit timeUnit, RandomCodeScene scene, String tag, String value) {
         Assert.isTrue(length > 0, "length must be greater than 0");
         // 生成随机的code
         String code = RandomUtil.randomNumbers(length);
-        return doRandom(expired, timeUnit, scene, clientId, code, value);
+        return doRandom(expired, timeUnit, scene, tag, code, value);
     }
 
     @Override
-    public String randomStr(int length, int expired, TimeUnit timeUnit, RandomCodeScene scene, String clientId, String value) {
+    public String randomStr(int length, int expired, TimeUnit timeUnit, RandomCodeScene scene, String tag, String value) {
         Assert.isTrue(length > 0, "length must be greater than 0");
         // 生成随机的code
         String code = RandomUtil.randomString(length);
-        return doRandom(expired, timeUnit, scene, code, clientId, value);
+        return doRandom(expired, timeUnit, scene, code, tag, value);
     }
 
-    private String doRandom(long expired, TimeUnit timeUnit, RandomCodeScene scene, String clientId, String code, String value) {
-        String redisKey = getRedisKey(code, clientId, scene.suffix);
+    private String doRandom(long expired, TimeUnit timeUnit, RandomCodeScene scene, String tag, String code, String value) {
+        String redisKey = getRedisKey(code, tag, scene);
         Boolean set = SmartRedisManager.getInstance().set(redisKey, value, expired, timeUnit);
         if (Boolean.TRUE.equals(set)) {
             return code;
@@ -45,14 +45,17 @@ public class RedisRandomCodeService implements RandomCodeService {
     }
 
     @Override
-    public boolean isExist(String code, String value, String clientId, RandomCodeScene scene) {
-        String redisKey = getRedisKey(code, clientId, scene.suffix);
+    public boolean isExist(String code, String value, String tag, RandomCodeScene scene) {
+        String redisKey = getRedisKey(code, tag, scene);
         String data = SmartRedisManager.getInstance().get(redisKey);
         return StringUtils.isNotBlank(data) && data.equals(value);
     }
 
-    private String getRedisKey(String code, String clientId, String suffix){
-        return  suffix + clientId + StrUtil.COLON + code;
+    private String getRedisKey(String code, String tag, RandomCodeScene scene){
+        if (StringUtils.isBlank(tag)) {
+            return scene.suffix + code;
+        }
+        return  scene.suffix + tag + StrUtil.COLON + code;
     }
     
 

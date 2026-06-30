@@ -13,6 +13,7 @@ import io.minio.RemoveObjectArgs;
 import io.minio.StatObjectArgs;
 import io.minio.StatObjectResponse;
 import io.minio.errors.ErrorResponseException;
+import lombok.extern.slf4j.Slf4j;
 
 import java.time.ZonedDateTime;
 import java.util.Map;
@@ -23,6 +24,7 @@ import java.util.Map;
  * @author hongqy
  * @date 2026/5/18
  */
+@Slf4j
 public class MinioOssStoreService extends AbstractOssStoreService {
 
     private static final long UNKNOWN_OBJECT_SIZE = -1L;
@@ -57,7 +59,8 @@ public class MinioOssStoreService extends AbstractOssStoreService {
                     .etag(response.etag())
                     .metadata(copyMetadata(request.getMetadata()))
                     .build();
-        } catch (Exception ignored) {
+        } catch (Exception e) {
+            log.error("Failed to upload object to OSS", e);
             throw operationFailed();
         }
     }

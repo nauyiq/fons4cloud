@@ -3,13 +3,12 @@ package com.fons.cloud.cache.random;
 import java.util.concurrent.TimeUnit;
 
 /**
- * RedisRandomCodeServer.
  * Generator Random code.
  * @author qiyuan.hong
  * @version 1.0
  * @date 2022/10/14
  */
-public interface RandomCodeService {
+public interface RandomCodeFacade {
 
     int DEFAULT_LENGTH = 6;
 
@@ -21,7 +20,7 @@ public interface RandomCodeService {
         return randomNumber(length, expired, timeUnit, scene, "default", value);
     }
 
-    String randomNumber(int length, int expired, TimeUnit timeUnit, RandomCodeScene scene, String clientId, String value);
+    String randomNumber(int length, int expired, TimeUnit timeUnit, RandomCodeScene scene, String tag, String value);
 
     default String randomStr(int expired, TimeUnit timeUnit, RandomCodeScene scene, String value) {
         return randomStr(DEFAULT_LENGTH, expired, timeUnit, scene, value);
@@ -31,12 +30,13 @@ public interface RandomCodeService {
         return randomStr(length, expired, timeUnit, scene, "default", value);
     }
 
-    String randomStr(int length, int expired, TimeUnit timeUnit, RandomCodeScene scene, String clientId, String value);
-
+    String randomStr(int length, int expired, TimeUnit timeUnit, RandomCodeScene scene, String tag, String value);
+    
     default boolean isExist(String code, String value, RandomCodeScene scene) {
         return isExist(code, value, "default", scene);
     }
 
-    boolean isExist(String code, String value, String clientId, RandomCodeScene scene);
+    
+    boolean isExist(String code, String value, String tag, RandomCodeScene scene);
 
 }

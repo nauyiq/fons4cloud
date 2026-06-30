@@ -5,8 +5,8 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.annotation.PropertyAccessor;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fons.cloud.cache.common.RedisConstants;
-import com.fons.cloud.cache.random.RandomCodeService;
-import com.fons.cloud.cache.random.RedisRandomCodeService;
+import com.fons.cloud.cache.random.RandomCodeFacade;
+import com.fons.cloud.cache.random.RedisRandomCodeFacade;
 import com.fons.cloud.cache.redis.stream.RedisStreamMessageListener;
 import com.fons.cloud.cache.redis.stream.RedisStreamService;
 import com.fons.cloud.cache.redis.stream.support.*;
@@ -15,7 +15,6 @@ import com.fons.cloud.stream.api.StreamConsumerFactory;
 import com.fons.cloud.stream.api.StreamProducer;
 import com.fons.cloud.stream.api.StreamProducerFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
@@ -36,8 +35,8 @@ public class IRedisAutoConfiguration {
 
     @Bean
     @ConditionalOnMissingBean
-    public RandomCodeService randomCodeService() {
-        return new RedisRandomCodeService();
+    public RandomCodeFacade randomCodeService() {
+        return new RedisRandomCodeFacade();
     }
 
     @Bean

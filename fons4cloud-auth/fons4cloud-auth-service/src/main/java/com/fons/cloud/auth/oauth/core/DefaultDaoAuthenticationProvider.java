@@ -8,7 +8,7 @@ import com.fons.cloud.auth.security.common.Oauth2EndpointUtils;
 import com.fons.cloud.auth.security.core.Oauth2ErrorCodesExpand;
 import com.fons.cloud.auth.utils.WebUtils;
 import com.fons.cloud.cache.random.RandomCodeScene;
-import com.fons.cloud.cache.random.RandomCodeService;
+import com.fons.cloud.cache.random.RandomCodeFacade;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.SneakyThrows;
 import org.apache.commons.lang3.StringUtils;
@@ -71,7 +71,7 @@ public class DefaultDaoAuthenticationProvider extends AbstractUserDetailsAuthent
 
             if (grantType.equals(SecurityConstants.SMS)) {
                 // 校验手机验证是否正确
-                RandomCodeService service = SpringUtil.getBean(RandomCodeService.class);
+                RandomCodeFacade service = SpringUtil.getBean(RandomCodeFacade.class);
                 String phone = request.getParameter(SecurityConstants.PHONE_PARAMETER_NAME);
                 if (StringUtils.isBlank(phone) || !service.isExist(code, phone, RandomCodeScene.SMS_AUTH)) {
                     Oauth2EndpointUtils.throwError(Oauth2ErrorCodesExpand.INVALID_REQUEST_CODE, Oauth2ErrorCodesExpand.INVALID_REQUEST_CODE,
@@ -82,7 +82,7 @@ public class DefaultDaoAuthenticationProvider extends AbstractUserDetailsAuthent
 
             if (grantType.equals(SecurityConstants.EMAIL)) {
                 // 校验邮箱验证是否正确
-                RandomCodeService service = SpringUtil.getBean(RandomCodeService.class);
+                RandomCodeFacade service = SpringUtil.getBean(RandomCodeFacade.class);
                 String email = request.getParameter(SecurityConstants.EMAIL);
                 if (StringUtils.isBlank(email) || !service.isExist(code, email, RandomCodeScene.EMAIL_AUTH)) {
                     Oauth2EndpointUtils.throwError(Oauth2ErrorCodesExpand.INVALID_REQUEST_CODE, Oauth2ErrorCodesExpand.INVALID_REQUEST_CODE,
