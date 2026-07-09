@@ -16,4 +16,10 @@ public interface SysOauthClientDomainService extends IService<OauthClient> {
      */
     OauthClient findByClientId(String clientId);
 
+    /**
+     * 清理客户端缓存。
+     * @param clientId 客户端ID
+     */
+    void evictClientCache(String clientId);
+
 }

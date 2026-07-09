@@ -1,8 +1,8 @@
 package com.fons.cloud.auth.application;
 
-import com.fons.cloud.account.request.AuthenticateRequest;
-import com.fons.cloud.account.request.RefreshTokenRequest;
-import com.fons.cloud.account.response.TokenInfo;
+import com.fons.cloud.auth.request.AuthenticateRequest;
+import com.fons.cloud.auth.request.RefreshTokenRequest;
+import com.fons.cloud.auth.response.TokenInfo;
 
 /**
  * 认证核心服务

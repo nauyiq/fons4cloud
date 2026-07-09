@@ -1,9 +1,9 @@
 package com.fons.cloud.auth.facade;
 
-import com.fons.cloud.account.request.AuthenticateRequest;
-import com.fons.cloud.account.request.RefreshTokenRequest;
-import com.fons.cloud.account.response.TokenInfo;
-import com.fons.cloud.account.service.AccountAuthenticationFacadeService;
+import com.fons.cloud.auth.request.AuthenticateRequest;
+import com.fons.cloud.auth.request.RefreshTokenRequest;
+import com.fons.cloud.auth.response.TokenInfo;
+import com.fons.cloud.auth.service.AccountAuthenticationFacadeService;
 import com.fons.cloud.auth.application.AuthenticationApplicationService;
 import com.fons.cloud.common.result.R;
 import com.fons.cloud.dubbo.DubboConstants;

@@ -1,5 +1,6 @@
 package com.fons.cloud.auth.domain.service.impl;
 
+import com.alicp.jetcache.anno.CacheInvalidate;
 import com.alicp.jetcache.anno.CacheRefresh;
 import com.alicp.jetcache.anno.CacheType;
 import com.alicp.jetcache.anno.Cached;
@@ -27,5 +28,11 @@ public class SysOauthClientDomainServiceImpl extends ServiceImpl<SysOauthClientM
     @Cached(name = "account:cache:oauth_client:", expire = 3000,  cacheType = CacheType.REMOTE, key = "#clientId", cacheNullValue = false)
     public OauthClient findByClientId(String clientId) {
         return getBaseMapper().selectById(clientId);
+    }
+
+    @Override
+    @CacheInvalidate(name = "account:cache:oauth_client:", key = "#clientId")
+    public void evictClientCache(String clientId) {
+        log.info("Evict oauth client cache, clientId: {}", clientId);
     }
 }

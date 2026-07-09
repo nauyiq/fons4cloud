@@ -1,7 +1,7 @@
 package com.fons.cloud.auth.oauth.handler;
 
 import cn.hutool.core.util.StrUtil;
-import com.fons.cloud.account.constants.AccountResultCode;
+import com.fons.cloud.auth.constants.AccountResultCode;
 import com.fons.cloud.auth.security.core.Oauth2ErrorCodesExpand;
 import com.fons.cloud.common.result.R;
 import com.fons.cloud.common.result.Result;

@@ -22,7 +22,7 @@ import java.util.Objects;
  * @date 2023/3/8 13:44
  */
 @Slf4j
-@Aspect
+//@Aspect
 @Deprecated
 @RequiredArgsConstructor
 public class AuthenticationAspect {

@@ -11,10 +11,15 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.redisson.api.RMap;
 import org.redisson.api.RSet;
 import org.redisson.api.RedissonClient;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.util.Collection;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * 权限认证资源仓库
@@ -27,10 +32,11 @@ import java.util.Set;
 @Slf4j
 @Component
 public class AuthorizationResourceRepository {
-    private final RMap<String, Set<String>> authorizationResourceMap;
+    private final RMap<String, Object> authorizationResourceMap;
     private final RSet<String> ignoredAccessTokenUriList;
     private final RSet<String> identifierTokenUriList;
 
+    @Autowired
     public AuthorizationResourceRepository(RedissonClient redissonClient) {
         authorizationResourceMap = redissonClient.getMap("GLOBAL_AUTHORIZATION_RESOURCE");
         ignoredAccessTokenUriList = redissonClient.getSet("GLOBAL_IGNORED_ACCESS_TOKEN_API");
@@ -44,9 +50,31 @@ public class AuthorizationResourceRepository {
     public void registerAuthorizationResource(AuthorizationResourceDTO authorizationResourceDTO) {
         Assert.notNull(authorizationResourceDTO, "authorizationResource must not be null");
         log.info("register authorization resource: {}", JSON.toJSONString(authorizationResourceDTO));
-        Set<String> oldResources = authorizationResourceMap.get(authorizationResourceDTO.getId());
+        Set<String> oldResources = normalizeAuthorities(authorizationResourceMap.get(authorizationResourceDTO.getId()));
         Set<String> resources = CollectionUtils.isEmpty(oldResources) ? authorizationResourceDTO.getAuthorities() : CollUtil.unionDistinct(oldResources, authorizationResourceDTO.getAuthorities());
         authorizationResourceMap.put(authorizationResourceDTO.getId(), resources);
+    }
+
+    /**
+     * 读取当前全部受保护资源与所需权限，用于控制面发布前生成快照。
+     *
+     * @return 资源 ID 与权限集合
+     */
+    public Map<String, Set<String>> getAuthorizationResources() {
+        return authorizationResourceMap.readAllMap().entrySet().stream()
+                .collect(Collectors.toMap(Map.Entry::getKey, entry -> normalizeAuthorities(entry.getValue())));
+    }
+
+    /**
+     * 用控制面已校验的资源清单整体替换当前受保护资源。
+     *
+     * @param resources 资源 ID 与权限集合
+     */
+    public void replaceAuthorizationResources(Map<String, Set<String>> resources) {
+        authorizationResourceMap.clear();
+        if (resources != null && !resources.isEmpty()) {
+            authorizationResourceMap.putAll(resources);
+        }
     }
 
     /**
@@ -70,9 +98,33 @@ public class AuthorizationResourceRepository {
         return ignoredAccessTokenUriList;
     }
 
+    /**
+     * 整体替换忽略 Token 校验的 URI 清单。
+     *
+     * @param uris 忽略 Token 校验的 URI 清单
+     */
+    public void replaceIgnoredAccessTokenUri(Set<String> uris) {
+        ignoredAccessTokenUriList.clear();
+        if (uris != null && !uris.isEmpty()) {
+            ignoredAccessTokenUriList.addAll(uris);
+        }
+    }
+
 
     public Set<String> getIdentifierTokenUri() {
         return identifierTokenUriList;
+    }
+
+    /**
+     * 整体替换需要幂等标识 Token 的 URI 清单。
+     *
+     * @param uris 需要幂等标识 Token 的 URI 清单
+     */
+    public void replaceIdentifierTokenUri(Set<String> uris) {
+        identifierTokenUriList.clear();
+        if (uris != null && !uris.isEmpty()) {
+            identifierTokenUriList.addAll(uris);
+        }
     }
 
     /**
@@ -111,7 +163,7 @@ public class AuthorizationResourceRepository {
      */
     public boolean authenticate(String uri, String method, List<String> authorities) {
         String resourceId = method + StrUtil.UNDERLINE + uri;
-        Set<String> needAuthorities = authorizationResourceMap.get(resourceId);
+        Set<String> needAuthorities = normalizeAuthorities(authorizationResourceMap.get(resourceId));
         if (CollectionUtils.isEmpty(needAuthorities)) {
             // 没有配置规则
             return true;
@@ -119,5 +171,34 @@ public class AuthorizationResourceRepository {
         return CollUtil.containsAny(authorities, needAuthorities);
     }
 
+    private Set<String> normalizeAuthorities(Object value) {
+        if (value == null) {
+            return Set.of();
+        }
+        if (value instanceof Collection<?> collection) {
+            return collection.stream()
+                    .map(String::valueOf)
+                    .collect(Collectors.toCollection(LinkedHashSet::new));
+        }
+        if (value instanceof String text) {
+            String trimmed = text.trim();
+            if (StrUtil.isBlank(trimmed)) {
+                return Set.of();
+            }
+            if (trimmed.startsWith("[") && trimmed.endsWith("]")) {
+                try {
+                    return JSON.parseArray(trimmed, String.class).stream()
+                            .collect(Collectors.toCollection(LinkedHashSet::new));
+                } catch (RuntimeException ignored) {
+                    return java.util.Arrays.stream(trimmed.substring(1, trimmed.length() - 1).split(","))
+                            .map(String::trim)
+                            .filter(StrUtil::isNotBlank)
+                            .collect(Collectors.toCollection(LinkedHashSet::new));
+                }
+            }
+            return Set.of(trimmed);
+        }
+        return Set.of(String.valueOf(value));
+    }
 
 }

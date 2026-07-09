@@ -2,7 +2,7 @@ package com.fons.cloud.auth.domain.entity;
 
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;
-import com.fons.cloud.account.constants.AccountStatus;
+import com.fons.cloud.auth.constants.AccountStatus;
 import com.fons.cloud.auth.common.UserRole;
 import com.fons.cloud.db.entity.CommonEntity;
 import com.fons.cloud.db.handler.AesEncryptTypeHandler;

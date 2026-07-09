@@ -19,6 +19,16 @@ public interface AuthPermissionService {
     boolean isPermitRequest(AuthenticationRequest request);
 
     /**
+     * 此次请求是否允许在未解析 Token 前直接放行。
+     *
+     * @param request 当前请求
+     * @return result.
+     */
+    default boolean isPermitAnonymousRequest(AuthenticationRequest request) {
+        return isPermitRequest(request);
+    }
+
+    /**
      * 检查当前认证用户是否存在权限列表
      * @param authorities 权限列表
      * @return            是否存在

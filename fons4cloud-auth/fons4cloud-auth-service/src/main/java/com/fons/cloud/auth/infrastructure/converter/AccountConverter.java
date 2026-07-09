@@ -1,6 +1,6 @@
 package com.fons.cloud.auth.infrastructure.converter;
 
-import com.fons.cloud.account.response.AccountInfo;
+import com.fons.cloud.auth.response.AccountInfo;
 import com.fons.cloud.auth.domain.entity.Account;
 import com.fons.cloud.common.base.converter.CommonConverter;
 import org.mapstruct.Mapper;

@@ -1,6 +1,6 @@
 package com.fons.cloud.auth.application;
 
-import com.fons.cloud.account.request.AuthenticateRequest;
+import com.fons.cloud.auth.request.AuthenticateRequest;
 import com.fons.cloud.auth.domain.entity.Account;
 
 /**

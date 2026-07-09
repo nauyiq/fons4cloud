@@ -4,7 +4,7 @@
 
 > 适用范围：本仓库
 > 知识状态：基线已建立
-> 更新日期：2026-06-25
+> 更新日期：2026-07-08
 
 # 项目简介
 
@@ -45,8 +45,12 @@ fons4cloud 是面向 Java 微服务体系的云基础能力框架，提供认证
 
 | 场景 | 推荐技能 |
 | --- | --- |
-| 全新需求接入 | `fons4ai-sdd-requirements` -> `fons4ai-sdd-design` -> `fons4ai-sdd-tasks` |
+| 正常新需求开发 | `fons4ai-sdd-feature-workflow` |
+| 需求澄清/补需求说明书 | `fons4ai-sdd-requirements` |
+| 技术设计补充 | `fons4ai-sdd-design` |
+| 任务规划补充 | `fons4ai-sdd-tasks` |
 | 用户确认执行 SDD 任务 | `fons4ai-sdd-implement` |
+| SDD 实现或验证无法关闭 | `fons4ai-sdd-recovery` |
 | 已有功能迭代 | `fons4ai-sdd-change` |
 | BUG、异常、回归失败 | `fons4ai-bugfix-workflow` |
 | 项目知识基线初始化 | `fons4ai-knowledge-bootstrap` |
@@ -60,10 +64,12 @@ fons4cloud 是面向 Java 微服务体系的云基础能力框架，提供认证
 
 - SDD 只使用 `S1` 和 `S2`。
 - 全新需求产物默认位于 `spec/features/{yyyymmdd}/`，核心文件为 `{功能中文名}-需求说明书.md`、`{功能中文名}-技术设计说明书.md`、`{功能中文名}-任务规划.md`。
+- 正常新需求开发优先使用 `fons4ai-sdd-feature-workflow` 编排需求、设计和任务规划。
 - 若关键需求含义、技术术语、数据语义、验收口径、兼容性、安全权限、迁移回滚或 SDD 等级存在歧义，必须先澄清，不得直接生成正式三件套。
-- `fons4ai-sdd-requirements`、`fons4ai-sdd-design`、`fons4ai-sdd-tasks`、`fons4ai-sdd-change` 只能生成或更新 SDD 产物，不得写业务代码。
+- `fons4ai-sdd-feature-workflow`、`fons4ai-sdd-requirements`、`fons4ai-sdd-design`、`fons4ai-sdd-tasks`、`fons4ai-sdd-change` 只能生成或更新 SDD 产物，不得写业务代码。
 - 生成 `{功能中文名}-任务规划.md` 或 CR 增量任务后必须暂停，等待用户确认执行。
 - 用户回复 `执行`、`开始实现`、`继续执行` 时默认执行全部未完成任务；用户回复 `执行 T001,T002` 时只执行指定任务。
+- 实现或验证阶段无法关闭时，用户可回复 `继续闭环`、`处理阻塞` 或 `恢复执行`，由 `fons4ai-sdd-recovery` 诊断并路由到任务、设计、变更、实现或外部 Gate。
 
 ## 知识库建设确认门禁
 
@@ -73,4 +79,4 @@ fons4cloud 是面向 Java 微服务体系的云基础能力框架，提供认证
 - 用户确认当前问题后，才能继续下一个阻塞问题；没有剩余阻塞问题后才能生成正式知识库。
 - 用户未确认前，只能生成候选理解、盘点清单或草案，不得写成已验证知识。
 - 单个实现方、单个配置样例、单个模块实现或单个部署方式不得被写成标准流程，除非经过横向对比或用户确认。
-- 如果用户回复“按推荐”或“确认”，则使用推荐方案继续生成正式知识库。
+- 用户针对当前问题回复“按推荐”或“确认”，只表示当前问题已确认；除非用户明确说“全部按推荐”，否则不得视为后续所有确认问题都已确认。

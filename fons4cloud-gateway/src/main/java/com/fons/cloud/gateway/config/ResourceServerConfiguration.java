@@ -1,7 +1,6 @@
 package com.fons.cloud.gateway.config;
 
-import com.fons.cloud.account.constants.AccountResultCode;
-import com.fons.cloud.auth.api.AuthPermissionService;
+import com.fons.cloud.auth.constants.AccountResultCode;
 import com.fons.cloud.auth.security.core.DefaultReactiveOpaqueTokenIntrospector;
 import com.fons.cloud.auth.security.core.RedisOAuth2AuthorizationService;
 import com.fons.cloud.auth.utils.StaticEndpointAuthorizationManager;
@@ -35,8 +34,6 @@ import org.springframework.web.cors.reactive.UrlBasedCorsConfigurationSource;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
-import java.util.List;
-
 /**
  * 网关承担资源服务器
  * @author qiyuan.hong
@@ -49,7 +46,6 @@ import java.util.List;
 @RequiredArgsConstructor
 public class ResourceServerConfiguration {
 
-    private final AuthPermissionService authPermissionService;
     private final AuthorizationManager authorizationManager;
 
     @Bean
@@ -105,12 +101,8 @@ public class ResourceServerConfiguration {
     }
 
     private String[] getWhiteUriPatterns() {
-        // 业务白名单， 不需要登录即可访问的.
-        List<String> businessWhiteUris = authPermissionService.getBusinessWhiteUris();
-        // 获取静态白名单
-        List<String> endpointsPatterns = StaticEndpointAuthorizationManager.getInstance().getWhiteEndpointsPatterns();
-        endpointsPatterns.addAll(businessWhiteUris);
-        return endpointsPatterns.toArray(new String[0]);
+        // 只保留启动期静态白名单；业务免 Token URI 由 AuthorizationManager 运行期动态判断。
+        return StaticEndpointAuthorizationManager.getInstance().getWhiteEndpointsPatterns().toArray(new String[0]);
     }
 
 

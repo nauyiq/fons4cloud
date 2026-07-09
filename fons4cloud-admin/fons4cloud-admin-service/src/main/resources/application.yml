@@ -1,0 +1,25 @@
+logging:
+  config: classpath:logback.xml
+
+server:
+  port: 8002
+
+spring:
+  application:
+    name: admin-service
+  main:
+    allow-bean-definition-overriding: true
+
+  config:
+    import:
+      - classpath:nacos_config.yml
+      - nacos:@profiles.active@.yaml
+      - nacos:redis.yaml
+      - nacos:datasource-admin.yaml
+
+  freemarker:
+    template-loader-path:
+      - classpath:/template/
+    suffix: .ftl
+  mvc:
+    static-path-pattern: /static/*

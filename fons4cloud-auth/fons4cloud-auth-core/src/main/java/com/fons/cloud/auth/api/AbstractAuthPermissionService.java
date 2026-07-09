@@ -16,7 +16,8 @@ import java.util.HashSet;
 import java.util.List;
 
 /**
- * 抽象权限校验模板类.
+ * 抽象权限校验模板类。
+ *
  * @author qiyuan.hong
  * @version 1.0
  * @date 2022/10/10
@@ -25,21 +26,28 @@ import java.util.List;
 @RequiredArgsConstructor
 public abstract class AbstractAuthPermissionService implements AuthPermissionService {
 
+    private static final long BUSINESS_WHITE_URI_CACHE_MILLIS = 5000L;
+
     private final AuthorizationResourceRepository authorizationResourceRepository;
+    private volatile List<String> businessWhiteUriCache = List.of();
+    private volatile long businessWhiteUriCacheExpiredAt = 0L;
+
+    @Override
+    public final boolean isPermitAnonymousRequest(AuthenticationRequest request) {
+        AssertUtil.notNull(request, "AuthenticationRequest should not be null.");
+        if (HttpMethod.OPTIONS.name().equalsIgnoreCase(request.method())) {
+            return true;
+        }
+        return isWhiteRequest(request);
+    }
 
     @Override
     public final boolean isPermitRequest(AuthenticationRequest request) {
         AssertUtil.notNull(request, "AuthenticationRequest should not be null.");
-        // option请求放行.
-        if (HttpMethod.OPTIONS.name().equalsIgnoreCase(request.method())) {
-            return true;
-        }
-        // 判断是否是白名单请求
-        if (isWhiteRequest(request)) {
+        if (isPermitAnonymousRequest(request)) {
             return true;
         }
 
-        // 获取用户允许访问的权限， 这里配置的是用户角色
         List<String> authorities = request.authorities();
         if (CollectionUtils.isEmpty(authorities)) {
             log.warn("AuthenticationRequest has no authorities, request:{}", JSON.toJSONString(request));
@@ -51,23 +59,32 @@ public abstract class AbstractAuthPermissionService implements AuthPermissionSer
 
     private boolean isWhiteRequest(AuthenticationRequest request) {
         String requestUri = request.requestUri();
-        //是否是静态的端点访问uri || 是否是白名单IP || 是业务允许通过的uri
-        return isWhiteStaticEndpoint(requestUri) || isWhiteAccessIp(request.requestIp()) || isBusinessWhiteAccessUri(requestUri);
+        return isWhiteStaticEndpoint(requestUri)
+                || isWhiteAccessIp(request.requestIp())
+                || isBusinessWhiteAccessUri(requestUri);
     }
-
 
     @Override
     public boolean hasAuthorities(String... authorities) {
-        // 获取当前登录用户权限
         List<String> currentAuthorities = AuthUtils.getCurrentAuthorities();
         return new HashSet<>(currentAuthorities).containsAll(List.of(authorities));
     }
 
     @Override
     public List<String> getBusinessWhiteUris() {
-        return new ArrayList<>(authorizationResourceRepository.getIgnoredAccessTokenUri());
+        long now = System.currentTimeMillis();
+        if (now < businessWhiteUriCacheExpiredAt) {
+            return businessWhiteUriCache;
+        }
+        synchronized (this) {
+            if (now < businessWhiteUriCacheExpiredAt) {
+                return businessWhiteUriCache;
+            }
+            businessWhiteUriCache = List.copyOf(new ArrayList<>(authorizationResourceRepository.getIgnoredAccessTokenUri()));
+            businessWhiteUriCacheExpiredAt = now + BUSINESS_WHITE_URI_CACHE_MILLIS;
+            return businessWhiteUriCache;
+        }
     }
-
 
     protected boolean isWhiteStaticEndpoint(String requestUri) {
         if (StringUtils.isBlank(requestUri)) {
@@ -76,18 +93,19 @@ public abstract class AbstractAuthPermissionService implements AuthPermissionSer
         return StaticEndpointAuthorizationManager.getInstance().isStaticWhiteEndpoint(requestUri);
     }
 
-
     /**
-     * 是否是白名单ip
-     * @param requestIp 请求ip
-     * @return          result.
+     * 判断当前请求 IP 是否命中白名单。
+     *
+     * @param requestIp 请求 IP
+     * @return result.
      */
     protected abstract boolean isWhiteAccessIp(String requestIp);
 
     /**
-     * 是否是业务白名单uri
+     * 判断当前请求 URI 是否命中业务免 Token 白名单。
+     *
      * @param requestUri request uri
-     * @return           result.
+     * @return result.
      */
     protected boolean isBusinessWhiteAccessUri(String requestUri) {
         try {
@@ -98,6 +116,5 @@ public abstract class AbstractAuthPermissionService implements AuthPermissionSer
             return false;
         }
     }
-
 
 }

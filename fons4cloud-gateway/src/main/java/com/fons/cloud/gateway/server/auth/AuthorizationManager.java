@@ -22,7 +22,12 @@ import java.util.List;
 import java.util.Objects;
 
 /**
- * 网关鉴权管理器 所有权限在此配置
+ * 网关鉴权管理器。
+ *
+ * <p>gateway 不感知具体业务路径的权限语义，受保护资源统一委派给
+ * {@link AuthPermissionService}，由框架授权资源仓储根据
+ * {@code @AuthenticationResource} 注册结果完成判断。</p>
+ *
  * @author qiyuan.hong
  * @date 2022-03-14 14:29
  */
@@ -30,24 +35,27 @@ import java.util.Objects;
 @Component
 @RequiredArgsConstructor
 public class AuthorizationManager implements ReactiveAuthorizationManager<AuthorizationContext> {
+
     private final AuthPermissionService authPermissionService;
 
     @Override
     public Mono<AuthorizationDecision> check(Mono<Authentication> mono, AuthorizationContext authorizationContext) {
         ServerHttpRequest request = authorizationContext.getExchange().getRequest();
         ReactAccess2Request authenticationRequest = new ReactAccess2Request(request);
+        if (authPermissionService.isPermitAnonymousRequest(authenticationRequest)) {
+            return Mono.just(new AuthorizationDecision(true));
+        }
         return mono
                 .filter(Authentication::isAuthenticated)
-                .map(authorities -> getAuthorizationDecision(authenticationRequest, authorities));
+                .map(authentication -> getAuthorizationDecision(authenticationRequest, authentication))
+                .defaultIfEmpty(new AuthorizationDecision(false));
     }
 
     private AuthorizationDecision getAuthorizationDecision(ReactAccess2Request request, Authentication authentication) {
-        Collection<? extends GrantedAuthority> authoritiesAuthorities = authentication.getAuthorities();
-        if (CollectionUtils.isNotEmpty(authoritiesAuthorities)) {
-            // 设置鉴权的权限列表到请求上下文中
-            request.setAuthorities(authoritiesAuthorities.stream().map(GrantedAuthority::getAuthority).toList());
+        Collection<? extends GrantedAuthority> authorities = authentication.getAuthorities();
+        if (CollectionUtils.isNotEmpty(authorities)) {
+            request.setAuthorities(authorities.stream().map(GrantedAuthority::getAuthority).toList());
         }
-        // 判断允许访问
         return new AuthorizationDecision(authPermissionService.isPermitRequest(request));
     }
 
@@ -59,7 +67,6 @@ public class AuthorizationManager implements ReactiveAuthorizationManager<Author
         private final String method;
         @Setter
         private List<String> authorities;
-
 
         public ReactAccess2Request(ServerHttpRequest request) {
             this.requestIp = RequestUtil.getIpAddress(request);
@@ -99,6 +106,5 @@ public class AuthorizationManager implements ReactiveAuthorizationManager<Author
             return this.authorities;
         }
     }
-
 
 }

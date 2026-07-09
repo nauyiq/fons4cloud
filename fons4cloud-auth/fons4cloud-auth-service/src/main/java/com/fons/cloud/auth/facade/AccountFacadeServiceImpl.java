@@ -1,16 +1,16 @@
 package com.fons.cloud.auth.facade;
 
 import cn.hutool.core.lang.Assert;
-import com.fons.cloud.account.constants.AccountResultCode;
-import com.fons.cloud.account.constants.AccountStatus;
-import com.fons.cloud.account.constants.GrantType;
-import com.fons.cloud.account.request.AccountAuthRequest;
-import com.fons.cloud.account.request.AccountModifyRequest;
-import com.fons.cloud.account.request.AccountQueryParams;
-import com.fons.cloud.account.request.AuthenticateRequest;
-import com.fons.cloud.account.response.AccountInfo;
-import com.fons.cloud.account.response.TokenInfo;
-import com.fons.cloud.account.service.AccountFacadeService;
+import com.fons.cloud.auth.constants.AccountResultCode;
+import com.fons.cloud.auth.constants.AccountStatus;
+import com.fons.cloud.auth.constants.GrantType;
+import com.fons.cloud.auth.request.AccountAuthRequest;
+import com.fons.cloud.auth.request.AccountModifyRequest;
+import com.fons.cloud.auth.request.AccountQueryParams;
+import com.fons.cloud.auth.request.AuthenticateRequest;
+import com.fons.cloud.auth.response.AccountInfo;
+import com.fons.cloud.auth.response.TokenInfo;
+import com.fons.cloud.auth.service.AccountFacadeService;
 import com.fons.cloud.auth.domain.entity.Account;
 import com.fons.cloud.auth.domain.service.AccountDomainService;
 import com.fons.cloud.auth.application.AccountApplicationService;
@@ -49,6 +49,8 @@ public class AccountFacadeServiceImpl implements AccountFacadeService {
         Long id = queryParams.getId();
         if (id != null) {
             account = accountDomainService.findById(id);
+        } else if (StringUtils.isNotBlank(queryParams.getUsername())) {
+            account = accountDomainService.queryAccountByUniqueIndex(queryParams.getUsername());
         } else if (StringUtils.isNotBlank(queryParams.getPhone())) {
             account = accountDomainService.queryAccountByUniqueIndex(queryParams.getPhone());
         } else if (StringUtils.isNotBlank(queryParams.getEmail())) {

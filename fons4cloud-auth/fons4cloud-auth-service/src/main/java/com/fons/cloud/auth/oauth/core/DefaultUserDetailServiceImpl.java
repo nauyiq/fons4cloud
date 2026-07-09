@@ -3,7 +3,7 @@ package com.fons.cloud.auth.oauth.core;
 import com.fons.cloud.auth.domain.entity.Account;
 import com.fons.cloud.auth.domain.entity.OauthClient;
 import com.fons.cloud.auth.domain.service.AccountDomainService;
-import com.fons.cloud.account.constants.AccountResultCode;
+import com.fons.cloud.auth.constants.AccountResultCode;
 import com.fons.cloud.auth.domain.service.SysOauthClientDomainService;
 import com.fons.cloud.auth.security.api.UserDetailsServiceWrapper;
 import com.fons.cloud.auth.security.core.SecurityAuthUser;

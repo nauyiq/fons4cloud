@@ -1,7 +1,7 @@
 package com.fons.cloud.auth.security.core;
 
 import cn.hutool.core.map.MapUtil;
-import com.fons.cloud.account.constants.AccountStatus;
+import com.fons.cloud.auth.constants.AccountStatus;
 import com.fons.cloud.auth.api.AuthUser;
 import com.fons.cloud.auth.common.UserRole;
 import lombok.Getter;

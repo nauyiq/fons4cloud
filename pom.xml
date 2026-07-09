@@ -16,6 +16,7 @@
         <module>fons4cloud-gateway</module>
         <module>fons4cloud-mq</module>
         <module>fons4cloud-starter</module>
+        <module>fons4cloud-admin</module>
         <module>fons4cloud-infrastructure</module>
     </modules>
 
@@ -42,6 +43,7 @@
         <!-- 框架层API服务版本号 -->
         <auth.service.api.version>1.0.0</auth.service.api.version>
         <infrastructure.api.version>1.0.0</infrastructure.api.version>
+        <admin.service.api.version>1.0.0</admin.service.api.version>
 
         <!-- 工具包依赖  -->
         <hutool.version>5.8.43</hutool.version>
