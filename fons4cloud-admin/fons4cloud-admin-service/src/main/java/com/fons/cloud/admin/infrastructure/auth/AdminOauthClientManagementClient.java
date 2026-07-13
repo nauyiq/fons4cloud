@@ -9,6 +9,8 @@ import com.fons.cloud.auth.response.OauthClientInfo;
 import com.fons.cloud.auth.response.OauthClientSecretRotateResult;
 import com.fons.cloud.common.result.R;
 
+import java.util.List;
+
 /**
  * admin 调用认证服务 OAuth Client 管理能力的 RPC 客户端端口。
  */
@@ -21,6 +23,9 @@ public interface AdminOauthClientManagementClient {
      * @return OAuth Client 脱敏信息
      */
     R<OauthClientInfo> query(OauthClientQueryRequest request);
+
+    /** 查询脱敏 OAuth Client 列表。 */
+    R<List<OauthClientInfo>> queryList(OauthClientQueryRequest request);
 
     /**
      * 创建 OAuth Client。

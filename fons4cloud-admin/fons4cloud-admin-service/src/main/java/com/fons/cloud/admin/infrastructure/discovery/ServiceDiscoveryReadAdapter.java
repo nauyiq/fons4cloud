@@ -7,6 +7,8 @@ import org.springframework.cloud.client.discovery.DiscoveryClient;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * 服务发现只读适配器，仅查询注册服务和实例，不执行上下线、权重或配置变更。
@@ -56,7 +58,23 @@ public class ServiceDiscoveryReadAdapter {
                 .host(instance.getHost())
                 .port(instance.getPort())
                 .healthy(Boolean.TRUE)
-                .metadata(instance.getMetadata())
+                .metadata(safeMetadata(instance.getMetadata()))
                 .build();
+    }
+
+    private Map<String, String> safeMetadata(Map<String, String> metadata) {
+        if (metadata == null || metadata.isEmpty()) {
+            return Map.of();
+        }
+        return metadata.entrySet().stream()
+                .filter(entry -> !sensitiveKey(entry.getKey()))
+                .collect(Collectors.toUnmodifiableMap(Map.Entry::getKey, Map.Entry::getValue));
+    }
+
+    private boolean sensitiveKey(String key) {
+        String normalized = key == null ? "" : key.toLowerCase();
+        return normalized.contains("secret") || normalized.contains("password")
+                || normalized.contains("token") || normalized.contains("credential")
+                || normalized.contains("apikey") || normalized.contains("api-key");
     }
 }

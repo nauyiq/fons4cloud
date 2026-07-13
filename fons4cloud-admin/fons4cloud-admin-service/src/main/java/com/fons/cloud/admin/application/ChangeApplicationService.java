@@ -1,6 +1,8 @@
 package com.fons.cloud.admin.application;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.fons.cloud.admin.api.constants.AdminResultCode;
 import com.fons.cloud.admin.api.enums.GovernanceAuditResult;
 import com.fons.cloud.admin.api.enums.GovernanceChangeStatus;
@@ -21,6 +23,8 @@ import com.fons.cloud.admin.domain.model.GovernanceChange;
 import com.fons.cloud.admin.domain.model.GovernanceRelease;
 import com.fons.cloud.admin.domain.model.GovernanceSnapshot;
 import com.fons.cloud.admin.infrastructure.converter.GovernanceChangeConverter;
+import com.fons.cloud.admin.interfaces.rest.api.model.ChangeDetailResponse;
+import com.fons.cloud.admin.interfaces.rest.api.model.PageResponse;
 import com.fons.cloud.common.base.exception.BizException;
 import com.fons.cloud.common.result.R;
 import lombok.RequiredArgsConstructor;
@@ -29,6 +33,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Set;
 
 /**
  * 统一治理变更应用服务，负责编排变更状态、发布记录、快照和审计。
@@ -64,9 +69,29 @@ public class ChangeApplicationService {
             wrapper.eq(AdminGovernanceChange::getStatus, status);
         }
         wrapper.orderByDesc(AdminGovernanceChange::getId);
+        wrapper.last("LIMIT 100");
         return R.ok(changeMapper.selectList(wrapper).stream()
                 .map(GovernanceChangeConverter.CONVERTER::mapToResponse)
                 .toList());
+    }
+
+    /** 强制上限的变更分页查询。 */
+    public R<PageResponse<GovernanceChangeResponse>> queryPage(Long resourceId, String status, int offset, int limit) {
+        int safeLimit = Math.min(100, Math.max(1, limit));
+        int safeOffset = Math.max(0, offset);
+        LambdaQueryWrapper<AdminGovernanceChange> wrapper = new LambdaQueryWrapper<>();
+        if (resourceId != null) {
+            wrapper.eq(AdminGovernanceChange::getResourceId, resourceId);
+        }
+        if (StringUtils.isNotBlank(status)) {
+            wrapper.eq(AdminGovernanceChange::getStatus, status);
+        }
+        wrapper.orderByDesc(AdminGovernanceChange::getId);
+        Page<AdminGovernanceChange> page = changeMapper.selectPage(
+                new Page<>((long) safeOffset / safeLimit + 1L, safeLimit), wrapper);
+        return R.ok(new PageResponse<>(page.getRecords().stream()
+                .map(GovernanceChangeConverter.CONVERTER::mapToResponse).toList(), page.getTotal(), safeOffset,
+                safeLimit));
     }
 
     /**
@@ -79,6 +104,55 @@ public class ChangeApplicationService {
         AdminGovernanceChange change = changeMapper.selectById(changeId);
         return change == null ? R.failed(AdminResultCode.ADMIN_DRAFT_NOT_EDITABLE)
                 : R.ok(GovernanceChangeConverter.CONVERTER.mapToResponse(change));
+    }
+
+    /** 查询变更、发布和快照摘要，快照正文不向列表页面暴露。 */
+    public R<ChangeDetailResponse> getDetail(Long changeId) {
+        AdminGovernanceChange change = changeMapper.selectById(changeId);
+        if (change == null) {
+            return R.failed(AdminResultCode.ADMIN_DRAFT_NOT_EDITABLE);
+        }
+        List<ChangeDetailResponse.ReleaseSummary> releases = releaseMapper.selectList(
+                        new LambdaQueryWrapper<AdminGovernanceRelease>()
+                                .eq(AdminGovernanceRelease::getChangeId, changeId)
+                                .orderByDesc(AdminGovernanceRelease::getId))
+                .stream().map(release -> new ChangeDetailResponse.ReleaseSummary(release.getId(),
+                        release.getReleaseNo(), release.getReleaseType(), release.getStatus(), release.getBeforeHash(),
+                        release.getAfterHash(), release.getErrorCode(), release.getErrorMessage(),
+                        release.getStartedAt(), release.getFinishedAt())).toList();
+        List<ChangeDetailResponse.SnapshotSummary> snapshots = snapshotMapper.selectList(
+                        new LambdaQueryWrapper<AdminGovernanceSnapshot>()
+                                .eq(AdminGovernanceSnapshot::getChangeId, changeId)
+                                .orderByDesc(AdminGovernanceSnapshot::getId))
+                .stream().map(snapshot -> new ChangeDetailResponse.SnapshotSummary(snapshot.getId(),
+                        snapshot.getSnapshotType(), snapshot.getContentHash(), snapshot.getCreated())).toList();
+        return R.ok(new ChangeDetailResponse(GovernanceChangeConverter.CONVERTER.mapToResponse(change), releases,
+                snapshots, allowedActions(change)));
+    }
+
+    private Set<String> allowedActions(AdminGovernanceChange change) {
+        GovernanceChangeStatus status = GovernanceChangeStatus.valueOf(change.getStatus());
+        return switch (status) {
+            case DRAFT, VALIDATION_FAILED -> Set.of("UPDATE", "VALIDATE");
+            case VALIDATED -> Set.of("PUBLISH");
+            case PUBLISHED -> Set.of("ROLLBACK");
+            case PUBLISHING, ROLLBACKING -> Set.of("QUERY_STATUS");
+            case DRIFT_DETECTED -> Set.of("UPDATE", "REBASE");
+            case PUBLISH_FAILED, ROLLBACK_FAILED -> Set.of("VIEW_ERROR");
+            case VALIDATING, ROLLED_BACK -> Set.of();
+        };
+    }
+
+    /** 更新 DRAFT 或 VALIDATION_FAILED 草稿。 */
+    @Transactional(rollbackFor = Exception.class)
+    public R<GovernanceChangeResponse> updateDraft(Long changeId, String content, String description,
+                                                   String operatorId) {
+        GovernanceChange change = loadChange(changeId);
+        change.updateDraft(content, description, operatorId);
+        changeMapper.updateById(change.getEntity());
+        recordAudit(change.getEntity(), "DRAFT_UPDATE", operatorId, GovernanceAuditResult.SUCCESS.name(),
+                "draft updated, contentHash=" + change.getEntity().getContentHash(), null, null);
+        return R.ok(GovernanceChangeConverter.CONVERTER.mapToResponse(change.getEntity()));
     }
 
     /**
@@ -145,6 +219,257 @@ public class ChangeApplicationService {
         recordAudit(change.getEntity(), OPERATION_VALIDATE, operatorId, GovernanceAuditResult.FAILED.name(),
                 "validate failed", AdminResultCode.ADMIN_VALIDATION_FAILED.getCode(), validationResult);
         return R.ok(Boolean.TRUE);
+    }
+
+    /**
+     * 在外部写入前原子占用变更并创建 RUNNING 发布记录。
+     */
+    @Transactional(rollbackFor = Exception.class)
+    public R<AdminGovernanceRelease> beginPublishExecution(Long changeId, String releaseNo, String beforeHash,
+                                                           String operatorId) {
+        AdminGovernanceChange entity = changeMapper.selectById(changeId);
+        if (entity == null || !GovernanceChangeStatus.VALIDATED.name().equals(entity.getStatus())) {
+            return R.failed(AdminResultCode.ADMIN_DRAFT_NOT_EDITABLE);
+        }
+        ensureNoRunningChange(entity.getResourceId(), entity.getId());
+        int updated = changeMapper.update(null, new LambdaUpdateWrapper<AdminGovernanceChange>()
+                .eq(AdminGovernanceChange::getId, entity.getId())
+                .eq(AdminGovernanceChange::getStatus, GovernanceChangeStatus.VALIDATED.name())
+                .eq(AdminGovernanceChange::getVersion, entity.getVersion())
+                .set(AdminGovernanceChange::getStatus, GovernanceChangeStatus.PUBLISHING.name())
+                .set(AdminGovernanceChange::getUpdatedBy, operatorId)
+                .set(AdminGovernanceChange::getVersion, entity.getVersion() + 1));
+        if (updated != 1) {
+            return R.failed(AdminResultCode.ADMIN_DRAFT_NOT_EDITABLE);
+        }
+        GovernanceRelease release = createRelease(changeId, releaseNo, GovernanceReleaseType.PUBLISH, beforeHash,
+                operatorId);
+        return R.ok(release.getEntity());
+    }
+
+    /** 在外部回滚写入前原子占用回滚变更并创建 RUNNING 记录。 */
+    @Transactional(rollbackFor = Exception.class)
+    public R<AdminGovernanceRelease> beginRollbackExecution(Long changeId, String releaseNo, String beforeHash,
+                                                            String operatorId) {
+        AdminGovernanceChange entity = changeMapper.selectById(changeId);
+        if (entity == null || !GovernanceChangeStatus.VALIDATED.name().equals(entity.getStatus())
+                || !GovernanceChangeType.ROLLBACK.name().equals(entity.getChangeType())) {
+            return R.failed(AdminResultCode.ADMIN_DRAFT_NOT_EDITABLE);
+        }
+        ensureNoRunningChange(entity.getResourceId(), entity.getId());
+        int updated = changeMapper.update(null, new LambdaUpdateWrapper<AdminGovernanceChange>()
+                .eq(AdminGovernanceChange::getId, entity.getId())
+                .eq(AdminGovernanceChange::getStatus, GovernanceChangeStatus.VALIDATED.name())
+                .eq(AdminGovernanceChange::getVersion, entity.getVersion())
+                .set(AdminGovernanceChange::getStatus, GovernanceChangeStatus.ROLLBACKING.name())
+                .set(AdminGovernanceChange::getUpdatedBy, operatorId)
+                .set(AdminGovernanceChange::getVersion, entity.getVersion() + 1));
+        if (updated != 1) {
+            return R.failed(AdminResultCode.ADMIN_DRAFT_NOT_EDITABLE);
+        }
+        GovernanceRelease release = createRelease(changeId, releaseNo, GovernanceReleaseType.ROLLBACK, beforeHash,
+                operatorId);
+        return R.ok(release.getEntity());
+    }
+
+    /** 发布后回读确认成功。 */
+    @Transactional(rollbackFor = Exception.class)
+    public R<GovernancePublishResult> completePublishExecution(Long changeId, Long releaseId, String beforeContent,
+                                                                String beforeHash, String afterContent, String afterHash,
+                                                                String operatorId, String effectiveHint) {
+        GovernanceChange change = requireExecutingChange(changeId, GovernanceChangeStatus.PUBLISHING);
+        GovernanceRelease release = requireRunningRelease(releaseId);
+        saveSnapshot(change.getEntity(), releaseId, GovernanceSnapshotType.BEFORE, beforeContent, beforeHash);
+        release.markSuccess(afterHash);
+        releaseMapper.updateById(release.getEntity());
+        saveSnapshot(change.getEntity(), releaseId, GovernanceSnapshotType.AFTER, afterContent, afterHash);
+        change.markPublished(operatorId);
+        changeMapper.updateById(change.getEntity());
+        recordAudit(change.getEntity(), OPERATION_PUBLISH, operatorId, GovernanceAuditResult.SUCCESS.name(),
+                "publish confirmed, releaseNo=" + release.getEntity().getReleaseNo() + ", afterHash=" + afterHash,
+                null, null);
+        return R.ok(toPublishResult(release.getEntity(), effectiveHint));
+    }
+
+    /** 外部目标明确返回失败。 */
+    @Transactional(rollbackFor = Exception.class)
+    public R<GovernancePublishResult> failPublishExecution(Long changeId, Long releaseId, String errorCode,
+                                                            String errorMessage, String operatorId) {
+        GovernanceChange change = requireExecutingChange(changeId, GovernanceChangeStatus.PUBLISHING);
+        GovernanceRelease release = requireRunningRelease(releaseId);
+        release.markFailed(errorCode, errorMessage);
+        releaseMapper.updateById(release.getEntity());
+        change.markPublishFailed(operatorId);
+        changeMapper.updateById(change.getEntity());
+        recordAudit(change.getEntity(), OPERATION_PUBLISH, operatorId, GovernanceAuditResult.FAILED.name(),
+                "publish failed, releaseNo=" + release.getEntity().getReleaseNo(), errorCode, errorMessage);
+        return R.ok(toPublishResult(release.getEntity(), null));
+    }
+
+    /** 发布前发现目标已漂移。 */
+    @Transactional(rollbackFor = Exception.class)
+    public R<GovernancePublishResult> driftPublishExecution(Long changeId, Long releaseId, String currentContent,
+                                                             String currentHash, String operatorId) {
+        GovernanceChange change = requireExecutingChange(changeId, GovernanceChangeStatus.PUBLISHING);
+        GovernanceRelease release = requireRunningRelease(releaseId);
+        release.markDriftDetected(currentHash);
+        releaseMapper.updateById(release.getEntity());
+        saveSnapshot(change.getEntity(), releaseId, GovernanceSnapshotType.DRIFT_CURRENT, currentContent, currentHash);
+        change.markDriftDetected(operatorId);
+        changeMapper.updateById(change.getEntity());
+        recordAudit(change.getEntity(), OPERATION_DRIFT, operatorId, GovernanceAuditResult.FAILED.name(),
+                "target drift detected, releaseNo=" + release.getEntity().getReleaseNo() + ", currentHash=" + currentHash,
+                AdminResultCode.ADMIN_CONFIG_DRIFT_DETECTED.getCode(), AdminResultCode.ADMIN_CONFIG_DRIFT_DETECTED.getMessage());
+        return R.ok(toPublishResult(release.getEntity(), null));
+    }
+
+    /** 写入结果无法回读确认，发布记录待确认且变更继续保持 PUBLISHING。 */
+    @Transactional(rollbackFor = Exception.class)
+    public R<GovernancePublishResult> pendingConfirmExecution(Long changeId, Long releaseId, String beforeContent,
+                                                               String beforeHash, String expectedAfterHash, String errorMessage,
+                                                               String operatorId) {
+        GovernanceChange change = requireExecutingChange(changeId, GovernanceChangeStatus.PUBLISHING);
+        GovernanceRelease release = requireRunningRelease(releaseId);
+        saveSnapshot(change.getEntity(), releaseId, GovernanceSnapshotType.BEFORE, beforeContent, beforeHash);
+        release.markPendingConfirm(errorMessage, expectedAfterHash);
+        releaseMapper.updateById(release.getEntity());
+        recordAudit(change.getEntity(), "PUBLISH_PENDING_CONFIRM", operatorId, GovernanceAuditResult.FAILED.name(),
+                "publish result requires target readback, releaseNo=" + release.getEntity().getReleaseNo(),
+                AdminResultCode.ADMIN_PUBLISH_CONFIRM_FAILED.getCode(), errorMessage);
+        return R.ok(toPublishResult(release.getEntity(), null));
+    }
+
+    /** 回滚后回读确认成功。 */
+    @Transactional(rollbackFor = Exception.class)
+    public R<GovernancePublishResult> completeRollbackExecution(Long changeId, Long releaseId, String beforeContent,
+                                                                 String beforeHash, String afterContent, String afterHash,
+                                                                 String operatorId, String effectiveHint) {
+        GovernanceChange change = requireExecutingChange(changeId, GovernanceChangeStatus.ROLLBACKING);
+        GovernanceRelease release = requireRunningRelease(releaseId);
+        saveSnapshot(change.getEntity(), releaseId, GovernanceSnapshotType.BEFORE, beforeContent, beforeHash);
+        release.markSuccess(afterHash);
+        releaseMapper.updateById(release.getEntity());
+        saveSnapshot(change.getEntity(), releaseId, GovernanceSnapshotType.AFTER, afterContent, afterHash);
+        change.markRolledBack(operatorId);
+        changeMapper.updateById(change.getEntity());
+        recordAudit(change.getEntity(), OPERATION_ROLLBACK, operatorId, GovernanceAuditResult.SUCCESS.name(),
+                "rollback confirmed, releaseNo=" + release.getEntity().getReleaseNo() + ", afterHash=" + afterHash,
+                null, null);
+        return R.ok(toPublishResult(release.getEntity(), effectiveHint));
+    }
+
+    /** 回滚目标明确失败。 */
+    @Transactional(rollbackFor = Exception.class)
+    public R<GovernancePublishResult> failRollbackExecution(Long changeId, Long releaseId, String errorCode,
+                                                             String errorMessage, String operatorId) {
+        GovernanceChange change = requireExecutingChange(changeId, GovernanceChangeStatus.ROLLBACKING);
+        GovernanceRelease release = requireRunningRelease(releaseId);
+        release.markFailed(errorCode, errorMessage);
+        releaseMapper.updateById(release.getEntity());
+        change.markRollbackFailed(operatorId);
+        changeMapper.updateById(change.getEntity());
+        recordAudit(change.getEntity(), OPERATION_ROLLBACK, operatorId, GovernanceAuditResult.FAILED.name(),
+                "rollback failed, releaseNo=" + release.getEntity().getReleaseNo(), errorCode, errorMessage);
+        return R.ok(toPublishResult(release.getEntity(), null));
+    }
+
+    /** 回滚写入后无法确认，变更保持 ROLLBACKING。 */
+    @Transactional(rollbackFor = Exception.class)
+    public R<GovernancePublishResult> pendingRollbackConfirmExecution(Long changeId, Long releaseId,
+                                                                       String beforeContent, String beforeHash,
+                                                                       String expectedAfterHash, String errorMessage,
+                                                                       String operatorId) {
+        GovernanceChange change = requireExecutingChange(changeId, GovernanceChangeStatus.ROLLBACKING);
+        GovernanceRelease release = requireRunningRelease(releaseId);
+        saveSnapshot(change.getEntity(), releaseId, GovernanceSnapshotType.BEFORE, beforeContent, beforeHash);
+        release.markPendingConfirm(errorMessage, expectedAfterHash);
+        releaseMapper.updateById(release.getEntity());
+        recordAudit(change.getEntity(), "ROLLBACK_PENDING_CONFIRM", operatorId, GovernanceAuditResult.FAILED.name(),
+                "rollback result requires target readback, releaseNo=" + release.getEntity().getReleaseNo(),
+                AdminResultCode.ADMIN_PUBLISH_CONFIRM_FAILED.getCode(), errorMessage);
+        return R.ok(toPublishResult(release.getEntity(), null));
+    }
+
+    /** 恢复任务确认待确认发布已经生效。 */
+    @Transactional(rollbackFor = Exception.class)
+    public R<GovernancePublishResult> confirmRecoveredSuccess(Long releaseId, String currentContent,
+                                                               String currentHash, String operatorId) {
+        AdminGovernanceRelease releaseEntity = releaseMapper.selectById(releaseId);
+        GovernanceRelease release = GovernanceRelease.from(releaseEntity);
+        GovernanceChange change = requireExecutingChange(releaseEntity.getChangeId(), GovernanceChangeStatus.PUBLISHING);
+        release.confirmSuccess(currentHash);
+        releaseMapper.updateById(release.getEntity());
+        saveSnapshot(change.getEntity(), releaseId, GovernanceSnapshotType.AFTER, currentContent, currentHash);
+        change.markPublished(operatorId);
+        changeMapper.updateById(change.getEntity());
+        recordAudit(change.getEntity(), "PUBLISH_RECOVERED", operatorId, GovernanceAuditResult.SUCCESS.name(),
+                "pending publish confirmed, releaseNo=" + releaseEntity.getReleaseNo(), null, null);
+        return R.ok(toPublishResult(release.getEntity(), "目标回读已确认发布成功"));
+    }
+
+    /** 恢复任务确认外部目标仍为执行前版本。 */
+    @Transactional(rollbackFor = Exception.class)
+    public R<GovernancePublishResult> confirmRecoveredNotApplied(Long releaseId, String operatorId) {
+        AdminGovernanceRelease releaseEntity = releaseMapper.selectById(releaseId);
+        GovernanceRelease release = GovernanceRelease.from(releaseEntity);
+        GovernanceChange change = requireExecutingChange(releaseEntity.getChangeId(), GovernanceChangeStatus.PUBLISHING);
+        release.confirmNotApplied();
+        releaseMapper.updateById(release.getEntity());
+        change.markPublishFailed(operatorId);
+        changeMapper.updateById(change.getEntity());
+        recordAudit(change.getEntity(), "PUBLISH_RECOVERED", operatorId, GovernanceAuditResult.FAILED.name(),
+                "pending publish not applied, releaseNo=" + releaseEntity.getReleaseNo(),
+                AdminResultCode.ADMIN_PUBLISH_CONFIRM_FAILED.getCode(), "目标仍为执行前版本");
+        return R.ok(toPublishResult(release.getEntity(), null));
+    }
+
+    /** 恢复任务确认待确认回滚已经生效。 */
+    @Transactional(rollbackFor = Exception.class)
+    public R<GovernancePublishResult> confirmRecoveredRollbackSuccess(Long releaseId, String currentContent,
+                                                                       String currentHash, String operatorId) {
+        AdminGovernanceRelease releaseEntity = releaseMapper.selectById(releaseId);
+        GovernanceRelease release = GovernanceRelease.from(releaseEntity);
+        GovernanceChange change = requireExecutingChange(releaseEntity.getChangeId(), GovernanceChangeStatus.ROLLBACKING);
+        release.confirmSuccess(currentHash);
+        releaseMapper.updateById(release.getEntity());
+        saveSnapshot(change.getEntity(), releaseId, GovernanceSnapshotType.AFTER, currentContent, currentHash);
+        change.markRolledBack(operatorId);
+        changeMapper.updateById(change.getEntity());
+        recordAudit(change.getEntity(), "ROLLBACK_RECOVERED", operatorId, GovernanceAuditResult.SUCCESS.name(),
+                "pending rollback confirmed, releaseNo=" + releaseEntity.getReleaseNo(), null, null);
+        return R.ok(toPublishResult(release.getEntity(), "目标回读已确认回滚成功"));
+    }
+
+    /** 恢复任务确认待确认回滚未生效。 */
+    @Transactional(rollbackFor = Exception.class)
+    public R<GovernancePublishResult> confirmRecoveredRollbackNotApplied(Long releaseId, String operatorId) {
+        AdminGovernanceRelease releaseEntity = releaseMapper.selectById(releaseId);
+        GovernanceRelease release = GovernanceRelease.from(releaseEntity);
+        GovernanceChange change = requireExecutingChange(releaseEntity.getChangeId(), GovernanceChangeStatus.ROLLBACKING);
+        release.confirmNotApplied();
+        releaseMapper.updateById(release.getEntity());
+        change.markRollbackFailed(operatorId);
+        changeMapper.updateById(change.getEntity());
+        recordAudit(change.getEntity(), "ROLLBACK_RECOVERED", operatorId, GovernanceAuditResult.FAILED.name(),
+                "pending rollback not applied, releaseNo=" + releaseEntity.getReleaseNo(),
+                AdminResultCode.ADMIN_PUBLISH_CONFIRM_FAILED.getCode(), "目标仍为执行前版本");
+        return R.ok(toPublishResult(release.getEntity(), null));
+    }
+
+    private GovernanceChange requireExecutingChange(Long changeId, GovernanceChangeStatus expected) {
+        GovernanceChange change = loadChange(changeId);
+        if (change.status() != expected) {
+            throw new BizException(AdminResultCode.ADMIN_DRAFT_NOT_EDITABLE);
+        }
+        return change;
+    }
+
+    private GovernanceRelease requireRunningRelease(Long releaseId) {
+        AdminGovernanceRelease entity = releaseMapper.selectById(releaseId);
+        if (entity == null || !GovernanceReleaseStatus.RUNNING.name().equals(entity.getStatus())) {
+            throw new BizException(AdminResultCode.ADMIN_TARGET_UNAVAILABLE);
+        }
+        return GovernanceRelease.from(entity);
     }
 
     /**
@@ -368,10 +693,18 @@ public class ChangeApplicationService {
     }
 
     private void ensureNoRunningChange(Long resourceId) {
-        Long runningCount = changeMapper.selectCount(new LambdaQueryWrapper<AdminGovernanceChange>()
+        ensureNoRunningChange(resourceId, null);
+    }
+
+    private void ensureNoRunningChange(Long resourceId, Long excludedChangeId) {
+        LambdaQueryWrapper<AdminGovernanceChange> wrapper = new LambdaQueryWrapper<AdminGovernanceChange>()
                 .eq(AdminGovernanceChange::getResourceId, resourceId)
                 .in(AdminGovernanceChange::getStatus, GovernanceChangeStatus.PUBLISHING.name(),
-                        GovernanceChangeStatus.ROLLBACKING.name()));
+                        GovernanceChangeStatus.ROLLBACKING.name());
+        if (excludedChangeId != null) {
+            wrapper.ne(AdminGovernanceChange::getId, excludedChangeId);
+        }
+        Long runningCount = changeMapper.selectCount(wrapper);
         if (runningCount != null && runningCount > 0) {
             throw new BizException(AdminResultCode.ADMIN_DRAFT_NOT_EDITABLE);
         }

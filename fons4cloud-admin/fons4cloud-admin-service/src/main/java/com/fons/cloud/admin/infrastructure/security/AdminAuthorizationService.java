@@ -44,23 +44,59 @@ public class AdminAuthorizationService {
      * @return admin 鉴权结果
      */
     public AdminAuthorizationDecision authorize(AuthUser authUser, Collection<String> requiredPermissionCodes) {
-        if (authUser == null) {
+        AdminSessionAccess sessionAccess = loadSessionAccess(authUser);
+        if (sessionAccess == null) {
             return AdminAuthorizationDecision.deny(AdminResultCode.ADMIN_USER_NOT_BOUND);
         }
-        AdminUser adminUser = findActiveBinding(authUser.getId());
-        if (adminUser == null) {
-            return AdminAuthorizationDecision.deny(AdminResultCode.ADMIN_USER_NOT_BOUND);
-        }
-        if (AdminUserStatus.DISABLED.name().equals(adminUser.getStatus())) {
+        if (!sessionAccess.active()) {
             return AdminAuthorizationDecision.deny(AdminResultCode.ADMIN_USER_DISABLED);
         }
         if (CollectionUtils.isEmpty(requiredPermissionCodes)) {
             return AdminAuthorizationDecision.deny(AdminResultCode.ADMIN_PERMISSION_DENIED);
         }
-        Set<String> ownedPermissionCodes = loadOwnedPermissionCodes(adminUser.getId());
-        boolean permitted = requiredPermissionCodes.stream().anyMatch(ownedPermissionCodes::contains);
+        boolean permitted = requiredPermissionCodes.stream().anyMatch(sessionAccess.permissionCodes()::contains);
         return permitted ? AdminAuthorizationDecision.allow()
                 : AdminAuthorizationDecision.deny(AdminResultCode.ADMIN_PERMISSION_DENIED);
+    }
+
+    /**
+     * 加载当前认证账号在 admin 自有 RBAC 中的会话视图。
+     *
+     * @param authUser 网关传递的认证用户
+     * @return admin 用户和权限；未绑定时返回 null
+     */
+    public AdminSessionAccess loadSessionAccess(AuthUser authUser) {
+        if (authUser == null) {
+            return null;
+        }
+        AdminUser adminUser = findActiveBinding(authUser.getId());
+        if (adminUser == null) {
+            return null;
+        }
+        boolean active = AdminUserStatus.ACTIVE.name().equals(adminUser.getStatus());
+        Set<String> permissionCodes = active ? loadOwnedPermissionCodes(adminUser.getId()) : Set.of();
+        return new AdminSessionAccess(adminUser.getId(), adminUser.getUsername(), active, permissionCodes);
+    }
+
+    public record AdminSessionAccess(Long adminUserId, String username, boolean active, Set<String> permissionCodes) {
+        public AdminSessionAccess {
+            permissionCodes = Set.copyOf(permissionCodes);
+        }
+    }
+
+    /**
+     * 仅校验当前认证账号已绑定并启用，供会话上下文等不归属具体功能域的入口使用。
+     *
+     * @param authUser 网关传递的认证用户
+     * @return admin 绑定状态校验结果
+     */
+    public AdminAuthorizationDecision authorizeAdmin(AuthUser authUser) {
+        AdminSessionAccess sessionAccess = loadSessionAccess(authUser);
+        if (sessionAccess == null) {
+            return AdminAuthorizationDecision.deny(AdminResultCode.ADMIN_USER_NOT_BOUND);
+        }
+        return sessionAccess.active() ? AdminAuthorizationDecision.allow()
+                : AdminAuthorizationDecision.deny(AdminResultCode.ADMIN_USER_DISABLED);
     }
 
     private AdminUser findActiveBinding(Long accountId) {

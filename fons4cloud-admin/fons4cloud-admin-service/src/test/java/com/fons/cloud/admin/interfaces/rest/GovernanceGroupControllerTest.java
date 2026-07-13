@@ -9,6 +9,7 @@ import com.fons.cloud.admin.api.response.ActuatorProbeResult;
 import com.fons.cloud.admin.api.response.GovernanceChangeResponse;
 import com.fons.cloud.admin.api.response.ServiceInstanceResponse;
 import com.fons.cloud.admin.application.GovernancePublishService;
+import com.fons.cloud.admin.application.GovernanceResourceQueryService;
 import com.fons.cloud.admin.infrastructure.actuator.ActuatorReadAdapter;
 import com.fons.cloud.admin.infrastructure.discovery.ServiceDiscoveryReadAdapter;
 import com.fons.cloud.auth.api.support.DefaultAuthUser;
@@ -48,6 +49,8 @@ class GovernanceGroupControllerTest {
     private ServiceDiscoveryReadAdapter serviceDiscoveryReadAdapter;
     @Mock
     private ActuatorReadAdapter actuatorReadAdapter;
+    @Mock
+    private GovernanceResourceQueryService governanceResourceQueryService;
 
     private MockMvc mockMvc;
 
@@ -55,10 +58,10 @@ class GovernanceGroupControllerTest {
     void setUp() {
         com.fons.cloud.auth.utils.AuthUtils.removeUser();
         mockMvc = MockMvcBuilders.standaloneSetup(
-                new GatewayGovernanceController(governancePublishService),
-                new TrafficGovernanceController(governancePublishService),
-                new AccessGovernanceController(governancePublishService),
-                new ClientGovernanceController(governancePublishService),
+                new GatewayGovernanceController(governancePublishService, governanceResourceQueryService),
+                new TrafficGovernanceController(governancePublishService, governanceResourceQueryService),
+                new AccessGovernanceController(governancePublishService, governanceResourceQueryService),
+                new ClientGovernanceController(governancePublishService, governanceResourceQueryService),
                 new ServiceGovernanceController(serviceDiscoveryReadAdapter),
                 new ObservabilityController(actuatorReadAdapter)
         ).build();
@@ -93,7 +96,7 @@ class GovernanceGroupControllerTest {
 
         mockMvc.perform(post("/admin/observability/actuator/probe")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"serviceName\":\"fons4cloud-auth\",\"endpointPath\":\"/actuator/health\"}"))
+                        .content("{\"serviceName\":\"fons4cloud-auth\",\"instanceId\":\"127.0.0.1:18080\",\"endpointPath\":\"/actuator/health\"}"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.status").value("UP"));
     }

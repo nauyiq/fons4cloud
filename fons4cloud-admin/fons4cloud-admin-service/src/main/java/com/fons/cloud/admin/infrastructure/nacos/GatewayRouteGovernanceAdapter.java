@@ -123,10 +123,11 @@ public class GatewayRouteGovernanceAdapter implements GovernanceTargetAdapter {
         return true;
     }
 
+    /**
+     * 网关动态路由以单个 Nacos dataId 保存完整路由数组；resourceKey 仅用于定位数组中的路由，
+     * 不能被当作 dataId 使用。
+     */
     private String targetDataId(ResourceRef resourceRef) {
-        if (resourceRef != null && StringUtils.isNotBlank(resourceRef.targetRef())) {
-            return resourceRef.targetRef();
-        }
         return dataId;
     }
 

@@ -3,6 +3,7 @@ package com.fons.cloud.admin.interfaces.rest;
 import com.fons.cloud.admin.api.response.GovernanceChangeResponse;
 import com.fons.cloud.admin.application.ChangeApplicationService;
 import com.fons.cloud.admin.application.GovernancePublishService;
+import com.fons.cloud.admin.application.GovernanceExecutionRecoveryService;
 import com.fons.cloud.common.result.R;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -30,13 +31,15 @@ class ChangeControllerTest {
     private ChangeApplicationService changeApplicationService;
     @Mock
     private GovernancePublishService governancePublishService;
+    @Mock
+    private GovernanceExecutionRecoveryService governanceExecutionRecoveryService;
 
     private MockMvc mockMvc;
 
     @BeforeEach
     void setUp() {
         mockMvc = MockMvcBuilders.standaloneSetup(new ChangeController(changeApplicationService,
-                governancePublishService)).build();
+                governancePublishService, governanceExecutionRecoveryService)).build();
     }
 
     @Test

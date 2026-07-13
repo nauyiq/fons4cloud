@@ -13,6 +13,8 @@ import com.fons.cloud.dubbo.DubboConstants;
 import org.apache.dubbo.config.annotation.DubboReference;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
+
 /**
  * 基于 Dubbo 的 OAuth Client 管理 RPC 客户端。
  */
@@ -25,6 +27,11 @@ public class DubboAdminOauthClientManagementClient implements AdminOauthClientMa
     @Override
     public R<OauthClientInfo> query(OauthClientQueryRequest request) {
         return oauthClientManagementFacadeService.query(request);
+    }
+
+    @Override
+    public R<List<OauthClientInfo>> queryList(OauthClientQueryRequest request) {
+        return oauthClientManagementFacadeService.queryList(request);
     }
 
     @Override

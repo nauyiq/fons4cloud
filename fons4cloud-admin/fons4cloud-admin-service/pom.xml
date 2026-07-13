@@ -22,6 +22,12 @@
 
         <dependency>
             <groupId>com.fons.cloud</groupId>
+            <artifactId>fons4cloud-admin-ui</artifactId>
+            <version>${revision}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.fons.cloud</groupId>
             <artifactId>fons4cloud-auth-service-api</artifactId>
             <version>${auth.service.api.version}</version>
         </dependency>
@@ -67,6 +73,7 @@
             <artifactId>fons4cloud-common-skywalking</artifactId>
             <version>${revision}</version>
         </dependency>
+
     </dependencies>
 
     <build>

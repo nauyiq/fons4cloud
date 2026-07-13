@@ -18,6 +18,7 @@ public enum AdminResultCode implements Result {
     ADMIN_PERMISSION_DENIED("AD100005", "admin操作权限不足"),
     ADMIN_ROLE_NOT_FOUND("AD100006", "admin角色不存在"),
     ADMIN_PERMISSION_NOT_FOUND("AD100007", "admin权限点不存在"),
+    ADMIN_REFRESH_COOKIE_INVALID("AD100008", "admin刷新会话已失效"),
     ADMIN_DRAFT_NOT_EDITABLE("AD200001", "当前草稿状态不允许编辑"),
     ADMIN_VALIDATION_FAILED("AD200002", "治理配置校验失败"),
     ADMIN_CONFIG_DRIFT_DETECTED("AD200003", "目标配置已发生外部漂移"),

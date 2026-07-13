@@ -21,6 +21,10 @@ public class ActuatorProbeRequest extends BaseRequest {
     @NotBlank(message = "服务名不能为空")
     private String serviceName;
 
+    /** 明确选择的注册实例 ID，禁止由服务端随机挑选实例。 */
+    @NotBlank(message = "服务实例不能为空")
+    private String instanceId;
+
     /**
      * 探测路径，只允许服务端白名单内的只读端点。
      */

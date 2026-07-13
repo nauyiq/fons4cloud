@@ -62,6 +62,7 @@ class ActuatorReadAdapterTest {
 
         ActuatorProbeResult result = adapter.probe(ActuatorProbeRequest.builder()
                 .serviceName("fons4cloud-auth")
+                .instanceId("127.0.0.1:18080")
                 .endpointPath("/actuator/health")
                 .build());
 
@@ -74,6 +75,7 @@ class ActuatorReadAdapterTest {
     void probeShouldRejectEndpointOutsideAllowList() {
         ActuatorProbeResult result = adapter.probe(ActuatorProbeRequest.builder()
                 .serviceName("fons4cloud-auth")
+                .instanceId("127.0.0.1:18080")
                 .endpointPath("/actuator/env")
                 .build());
 
@@ -87,6 +89,7 @@ class ActuatorReadAdapterTest {
 
         ActuatorProbeResult result = adapter.probe(ActuatorProbeRequest.builder()
                 .serviceName("fons4cloud-auth")
+                .instanceId("127.0.0.1:18080")
                 .endpointPath("/actuator/health")
                 .build());
 

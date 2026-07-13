@@ -42,8 +42,11 @@ public class AdminSecurityInterceptor implements HandlerInterceptor {
             writeDenied(response, HttpServletResponse.SC_UNAUTHORIZED, ResultCode.INVALID_ACCESS_TOKEN);
             return false;
         }
+        AdminPermission permission = handlerMethod.getMethodAnnotation(AdminPermission.class);
         Collection<String> requiredPermissions = requiredPermissions(handlerMethod);
-        AdminAuthorizationDecision decision = adminAuthorizationService.authorize(authUser, requiredPermissions);
+        AdminAuthorizationDecision decision = permission != null && requiredPermissions.isEmpty()
+                ? adminAuthorizationService.authorizeAdmin(authUser)
+                : adminAuthorizationService.authorize(authUser, requiredPermissions);
         if (decision.isAllowed()) {
             return true;
         }

@@ -10,6 +10,7 @@ import com.fons.cloud.admin.domain.model.GovernanceSnapshot;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import com.fons.cloud.admin.api.enums.GovernanceReleaseStatus;
 
 /**
  * 治理数据安全处理测试，集中验证审计、发布和快照摘要不会暴露敏感正文。
@@ -52,5 +53,17 @@ class GovernanceSecurityDataHandlingTest {
         assertThat(entity.getContentSummary())
                 .doesNotContain("10.0.0.1", "admin-route", "lb://admin-service", "plain-secret", "raw-token")
                 .contains("配置内容已脱敏");
+    }
+
+    @Test
+    void pendingConfirmShouldKeepOnlyExpectedHashesAndMaskedError() {
+        GovernanceRelease release = GovernanceRelease.createRunning(10L, "REL-002", GovernanceReleaseType.PUBLISH,
+                "hash-before", "operator");
+
+        release.markPendingConfirm("readback failed token=raw-token", "hash-expected");
+
+        assertThat(release.getEntity().getStatus()).isEqualTo(GovernanceReleaseStatus.PENDING_CONFIRM.name());
+        assertThat(release.getEntity().getAfterHash()).isEqualTo("hash-expected");
+        assertThat(release.getEntity().getErrorMessage()).doesNotContain("raw-token");
     }
 }

@@ -5,6 +5,9 @@ import com.fons.cloud.admin.api.enums.GovernanceDomain;
 import com.fons.cloud.admin.api.request.GroupedGovernanceDraftCreateRequest;
 import com.fons.cloud.admin.api.response.GovernanceChangeResponse;
 import com.fons.cloud.admin.application.GovernancePublishService;
+import com.fons.cloud.admin.application.GovernanceResourceQueryService;
+import com.fons.cloud.admin.interfaces.rest.api.model.GovernanceResourceDetailResponse;
+import com.fons.cloud.admin.interfaces.rest.api.model.PageResponse;
 import com.fons.cloud.admin.infrastructure.converter.GovernanceDraftRequestConverter;
 import com.fons.cloud.admin.infrastructure.security.AdminPermission;
 import com.fons.cloud.auth.annotation.AuthenticationResource;
@@ -13,6 +16,9 @@ import com.fons.cloud.common.result.R;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -28,6 +34,25 @@ public class GatewayGovernanceController {
     private static final String RESOURCE_TYPE_ROUTE = "ROUTE";
 
     private final GovernancePublishService governancePublishService;
+    private final GovernanceResourceQueryService governanceResourceQueryService;
+
+    @GetMapping
+    @AuthenticationResource(authorities = "ADMIN")
+    @AdminPermission(authorities = AdminPermissionCodes.GATEWAY_VIEW)
+    public R<PageResponse<GovernanceResourceDetailResponse>> listRoutes(
+            @RequestParam(required = false) String keyword,
+            @RequestParam(defaultValue = "0") int offset,
+            @RequestParam(defaultValue = "20") int limit) {
+        return R.ok(governanceResourceQueryService.list(GovernanceDomain.GATEWAY, RESOURCE_TYPE_ROUTE,
+                keyword, offset, limit));
+    }
+
+    @GetMapping("/{resourceKey}")
+    @AuthenticationResource(authorities = "ADMIN")
+    @AdminPermission(authorities = AdminPermissionCodes.GATEWAY_VIEW)
+    public R<GovernanceResourceDetailResponse> routeDetail(@PathVariable String resourceKey) {
+        return R.ok(governanceResourceQueryService.detail(GovernanceDomain.GATEWAY, RESOURCE_TYPE_ROUTE, resourceKey));
+    }
 
     /**
      * 创建网关路由治理草稿。

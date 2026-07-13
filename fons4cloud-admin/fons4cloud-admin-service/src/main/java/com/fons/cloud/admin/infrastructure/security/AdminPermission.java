@@ -21,5 +21,10 @@ public @interface AdminPermission {
      *
      * @return admin 内部权限码列表
      */
+    /**
+     * 显式空数组表示仅要求账号已绑定且启用；未声明本注解的接口仍默认拒绝。
+     *
+     * @return admin 内部权限码列表
+     */
     String[] authorities();
 }

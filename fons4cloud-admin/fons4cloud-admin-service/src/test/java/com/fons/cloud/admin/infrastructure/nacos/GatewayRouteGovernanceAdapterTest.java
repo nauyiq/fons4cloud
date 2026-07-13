@@ -94,6 +94,18 @@ class GatewayRouteGovernanceAdapterTest {
     }
 
     @Test
+    void loadCurrentShouldUseConfiguredDataIdInsteadOfRouteResourceKey() throws Exception {
+        when(nacosConfigManager.getConfigService()).thenReturn(configService);
+        when(configService.getConfig("gateway-routing.json", "DEFAULT_GROUP", 5000L))
+                .thenReturn("[{\"id\":\"orders\",\"uri\":\"lb://orders-service\",\"predicates\":[{\"name\":\"Path\"}]}]");
+
+        GovernanceTargetAdapter.CurrentConfig currentConfig = adapter.loadCurrent(new GovernanceTargetAdapter.ResourceRef(
+                adapter.domain(), "ROUTE", "orders", "orders"));
+
+        assertThat(currentConfig.targetRef()).isEqualTo("gateway-routing.json");
+    }
+
+    @Test
     void publishShouldWriteNormalizedConfigToNacos() throws Exception {
         when(nacosConfigManager.getConfigService()).thenReturn(configService);
         when(configService.getConfig("gateway-routing.json", "DEFAULT_GROUP", 5000L))

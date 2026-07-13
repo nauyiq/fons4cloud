@@ -16,6 +16,7 @@
 
     <modules>
         <module>fons4cloud-admin-api</module>
+        <module>fons4cloud-admin-ui</module>
         <module>fons4cloud-admin-service</module>
     </modules>
 

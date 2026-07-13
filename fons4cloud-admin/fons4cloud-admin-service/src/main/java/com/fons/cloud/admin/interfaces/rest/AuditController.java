@@ -7,12 +7,14 @@ import com.fons.cloud.admin.application.AuditApplicationService;
 import com.fons.cloud.admin.infrastructure.security.AdminPermission;
 import com.fons.cloud.auth.annotation.AuthenticationResource;
 import com.fons.cloud.common.result.R;
+import com.fons.cloud.admin.interfaces.rest.api.model.PageResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.List;
 
@@ -37,6 +39,15 @@ public class AuditController {
     @AdminPermission(authorities = AdminPermissionCodes.AUDITS_VIEW)
     public R<List<GovernanceAuditResponse>> query(@ModelAttribute AuditQueryRequest request) {
         return auditApplicationService.query(request);
+    }
+
+    @GetMapping("/page")
+    @AuthenticationResource(authorities = "ADMIN")
+    @AdminPermission(authorities = AdminPermissionCodes.AUDITS_VIEW)
+    public R<PageResponse<GovernanceAuditResponse>> queryPage(@ModelAttribute AuditQueryRequest request,
+                                                              @RequestParam(defaultValue = "0") int offset,
+                                                              @RequestParam(defaultValue = "20") int limit) {
+        return auditApplicationService.queryPage(request, offset, limit);
     }
 
     /**

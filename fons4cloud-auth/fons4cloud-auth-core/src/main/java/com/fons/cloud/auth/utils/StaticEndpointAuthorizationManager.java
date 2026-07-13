@@ -29,7 +29,7 @@ public class StaticEndpointAuthorizationManager {
             "/favicon.io","/favicon.ico",
             //Oauth2 Endpoint
             "/oauth/**", "/oauth2/**", "/oauth2/token", "/auth/sendCaptcha", "/token/**",
-            "/basic/**", "/actuator/**", "/druid/**"
+            "/basic/**", "/actuator/**", "/druid/**","/static/admin/**", "/admin-ui/**"
             //swagger
 //                "/v2/api-docs/**", "/swagger-ui.html", "/swagger-resources/**", "/webjars/**",
 //                "/**/v2/api-docs/**", "/**/swagger-ui.html", "/**/swagger-resources/**", "/**/webjars/**",

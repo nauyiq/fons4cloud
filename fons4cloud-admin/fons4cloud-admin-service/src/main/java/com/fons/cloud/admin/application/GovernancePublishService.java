@@ -22,13 +22,13 @@ import com.fons.cloud.common.result.R;
 import com.fons.cloud.util.JsonUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 /**
  * 治理发布编排服务，负责选择目标适配器并串联草稿、校验、发布、漂移和回滚状态机。
@@ -75,7 +75,6 @@ public class GovernancePublishService {
      * @param operatorId 操作人
      * @return 治理变更响应
      */
-    @Transactional(rollbackFor = Exception.class)
     public R<GovernanceChangeResponse> createDraft(GovernanceDraftCreateRequest request, String operatorId) {
         GovernanceTargetAdapter adapter = adapter(request.getDomain());
         if (adapter == null) {
@@ -107,7 +106,6 @@ public class GovernancePublishService {
      * @param operatorId 操作人
      * @return 校验结果
      */
-    @Transactional(rollbackFor = Exception.class)
     public R<GovernanceValidateResult> validateDraft(Long changeId, String operatorId) {
         AdminGovernanceChange change = changeMapper.selectById(changeId);
         if (change == null) {
@@ -137,7 +135,6 @@ public class GovernancePublishService {
      * @param operatorId 操作人
      * @return 发布结果
      */
-    @Transactional(rollbackFor = Exception.class)
     public R<GovernancePublishResult> publish(GovernancePublishRequest request, String operatorId) {
         AdminGovernanceChange change = changeMapper.selectById(request.getDraftId());
         if (change == null) {
@@ -150,30 +147,62 @@ public class GovernancePublishService {
         }
 
         GovernanceTargetAdapter.ResourceRef resourceRef = toResourceRef(resource);
-        GovernanceTargetAdapter.CurrentConfig currentConfig = adapter.loadCurrent(resourceRef);
+        GovernanceTargetAdapter.CurrentConfig currentConfig;
+        try {
+            currentConfig = adapter.loadCurrent(resourceRef);
+        } catch (RuntimeException ex) {
+            return R.failed(AdminResultCode.ADMIN_TARGET_UNAVAILABLE);
+        }
         String expectedBaseHash = StringUtils.defaultIfBlank(request.getExpectedBaseHash(), change.getBaseHash());
         String releaseNo = nextNo("REL");
+        R<com.fons.cloud.admin.domain.entity.AdminGovernanceRelease> begun =
+                changeApplicationService.beginPublishExecution(change.getId(), releaseNo,
+                        currentConfig == null ? expectedBaseHash : currentConfig.contentHash(), operatorId);
+        if (!begun.isSuccess()) {
+            return R.failed(begun.getCode(), begun.getMessage());
+        }
+        Long releaseId = begun.getData().getId();
         if (currentConfig != null && StringUtils.isNotBlank(expectedBaseHash)
                 && !expectedBaseHash.equals(currentConfig.contentHash())) {
-            return changeApplicationService.detectDrift(change.getId(), releaseNo, currentConfig.content(),
-                    currentConfig.contentHash(), operatorId);
+            return changeApplicationService.driftPublishExecution(change.getId(), releaseId,
+                    currentConfig.content(), currentConfig.contentHash(), operatorId);
         }
 
-        GovernanceTargetAdapter.AdapterPublishResult publishResult = adapter.publish(
-                new GovernanceTargetAdapter.TargetConfig(resourceRef, change.getContent(), change.getContentHash()),
-                new GovernanceTargetAdapter.PublishContext(releaseNo, operatorId, request.getPublishReason(),
-                        expectedBaseHash));
+        GovernanceTargetAdapter.AdapterPublishResult publishResult;
+        try {
+            publishResult = adapter.publish(
+                    new GovernanceTargetAdapter.TargetConfig(resourceRef, change.getContent(), change.getContentHash()),
+                    new GovernanceTargetAdapter.PublishContext(releaseNo, operatorId, request.getPublishReason(),
+                            expectedBaseHash));
+        } catch (RuntimeException ex) {
+            return changeApplicationService.failPublishExecution(change.getId(), releaseId,
+                    AdminResultCode.ADMIN_TARGET_UNAVAILABLE.getCode(), "治理目标写入明确失败", operatorId);
+        }
         if (publishResult == null || !publishResult.success()) {
-            return changeApplicationService.publishFailed(change.getId(), releaseNo,
-                    currentConfig == null ? change.getBaseHash() : currentConfig.contentHash(),
+            return changeApplicationService.failPublishExecution(change.getId(), releaseId,
                     publishResult == null ? AdminResultCode.ADMIN_TARGET_UNAVAILABLE.getCode() : publishResult.errorCode(),
                     publishResult == null ? AdminResultCode.ADMIN_TARGET_UNAVAILABLE.getMessage() : publishResult.errorMessage(),
                     operatorId);
         }
-        updateResourceHash(resource, publishResult.afterHash());
-        return changeApplicationService.publishSucceeded(change.getId(), releaseNo, publishResult.beforeContent(),
-                publishResult.beforeHash(), publishResult.afterContent(), publishResult.afterHash(), operatorId,
-                publishResult.effectiveHint());
+
+        GovernanceTargetAdapter.CurrentConfig confirmed;
+        try {
+            confirmed = adapter.loadCurrent(resourceRef);
+        } catch (RuntimeException ex) {
+            return changeApplicationService.pendingConfirmExecution(change.getId(), releaseId,
+                    publishResult.beforeContent(), publishResult.beforeHash(), publishResult.afterHash(),
+                    "写入后目标回读失败", operatorId);
+        }
+        if (confirmed == null || StringUtils.isBlank(confirmed.contentHash())
+                || !confirmed.contentHash().equals(publishResult.afterHash())) {
+            return changeApplicationService.pendingConfirmExecution(change.getId(), releaseId,
+                    publishResult.beforeContent(), publishResult.beforeHash(), publishResult.afterHash(),
+                    "写入后目标摘要不一致", operatorId);
+        }
+        updateResourceHash(resource, confirmed.contentHash());
+        return changeApplicationService.completePublishExecution(change.getId(), releaseId,
+                publishResult.beforeContent(), publishResult.beforeHash(), confirmed.content(), confirmed.contentHash(),
+                operatorId, publishResult.effectiveHint());
     }
 
     /**
@@ -183,7 +212,6 @@ public class GovernancePublishService {
      * @param operatorId 操作人
      * @return 发布结果
      */
-    @Transactional(rollbackFor = Exception.class)
     public R<GovernancePublishResult> rollback(GovernanceRollbackRequest request, String operatorId) {
         AdminGovernanceSnapshot sourceSnapshot = snapshotMapper.selectById(request.getSnapshotId());
         if (sourceSnapshot == null) {
@@ -202,33 +230,65 @@ public class GovernancePublishService {
         }
 
         GovernanceTargetAdapter.ResourceRef resourceRef = toResourceRef(resource);
-        GovernanceTargetAdapter.CurrentConfig currentConfig = adapter.loadCurrent(resourceRef);
+        GovernanceTargetAdapter.CurrentConfig currentConfig;
+        try {
+            currentConfig = adapter.loadCurrent(resourceRef);
+        } catch (RuntimeException ex) {
+            return R.failed(AdminResultCode.ADMIN_TARGET_UNAVAILABLE);
+        }
         String expectedCurrentHash = StringUtils.defaultIfBlank(request.getExpectedCurrentHash(),
                 currentConfig == null ? null : currentConfig.contentHash());
         String releaseNo = nextNo("REL-RB");
+        R<com.fons.cloud.admin.domain.entity.AdminGovernanceRelease> begun =
+                changeApplicationService.beginRollbackExecution(rollbackChange.getData().getId(), releaseNo,
+                        currentConfig == null ? expectedCurrentHash : currentConfig.contentHash(), operatorId);
+        if (!begun.isSuccess()) {
+            return R.failed(begun.getCode(), begun.getMessage());
+        }
+        Long releaseId = begun.getData().getId();
         if (currentConfig != null && StringUtils.isNotBlank(expectedCurrentHash)
                 && !expectedCurrentHash.equals(currentConfig.contentHash())) {
-            return changeApplicationService.rollbackFailed(rollbackChange.getData().getId(), releaseNo,
-                    currentConfig.contentHash(), AdminResultCode.ADMIN_CONFIG_DRIFT_DETECTED.getCode(),
+            return changeApplicationService.failRollbackExecution(rollbackChange.getData().getId(), releaseId,
+                    AdminResultCode.ADMIN_CONFIG_DRIFT_DETECTED.getCode(),
                     AdminResultCode.ADMIN_CONFIG_DRIFT_DETECTED.getMessage(), operatorId);
         }
 
-        GovernanceTargetAdapter.AdapterPublishResult publishResult = adapter.publish(
-                new GovernanceTargetAdapter.TargetConfig(resourceRef, sourceSnapshot.getContent(),
-                        sourceSnapshot.getContentHash()),
-                new GovernanceTargetAdapter.PublishContext(releaseNo, operatorId, request.getRollbackReason(),
-                        expectedCurrentHash));
+        GovernanceTargetAdapter.AdapterPublishResult publishResult;
+        try {
+            publishResult = adapter.publish(
+                    new GovernanceTargetAdapter.TargetConfig(resourceRef, sourceSnapshot.getContent(),
+                            sourceSnapshot.getContentHash()),
+                    new GovernanceTargetAdapter.PublishContext(releaseNo, operatorId, request.getRollbackReason(),
+                            expectedCurrentHash));
+        } catch (RuntimeException ex) {
+            return changeApplicationService.failRollbackExecution(rollbackChange.getData().getId(), releaseId,
+                    AdminResultCode.ADMIN_TARGET_UNAVAILABLE.getCode(), "治理目标回滚明确失败", operatorId);
+        }
         if (publishResult == null || !publishResult.success()) {
-            return changeApplicationService.rollbackFailed(rollbackChange.getData().getId(), releaseNo,
-                    currentConfig == null ? expectedCurrentHash : currentConfig.contentHash(),
+            return changeApplicationService.failRollbackExecution(rollbackChange.getData().getId(), releaseId,
                     publishResult == null ? AdminResultCode.ADMIN_TARGET_UNAVAILABLE.getCode() : publishResult.errorCode(),
                     publishResult == null ? AdminResultCode.ADMIN_TARGET_UNAVAILABLE.getMessage() : publishResult.errorMessage(),
                     operatorId);
         }
-        updateResourceHash(resource, publishResult.afterHash());
-        return changeApplicationService.rollbackSucceeded(rollbackChange.getData().getId(), releaseNo,
-                publishResult.beforeContent(), publishResult.beforeHash(), publishResult.afterContent(),
-                publishResult.afterHash(), operatorId, publishResult.effectiveHint());
+
+        GovernanceTargetAdapter.CurrentConfig confirmed;
+        try {
+            confirmed = adapter.loadCurrent(resourceRef);
+        } catch (RuntimeException ex) {
+            return changeApplicationService.pendingRollbackConfirmExecution(rollbackChange.getData().getId(),
+                    releaseId, publishResult.beforeContent(), publishResult.beforeHash(), publishResult.afterHash(),
+                    "回滚写入后目标回读失败", operatorId);
+        }
+        if (confirmed == null || StringUtils.isBlank(confirmed.contentHash())
+                || !confirmed.contentHash().equals(publishResult.afterHash())) {
+            return changeApplicationService.pendingRollbackConfirmExecution(rollbackChange.getData().getId(),
+                    releaseId, publishResult.beforeContent(), publishResult.beforeHash(), publishResult.afterHash(),
+                    "回滚写入后目标摘要不一致", operatorId);
+        }
+        updateResourceHash(resource, confirmed.contentHash());
+        return changeApplicationService.completeRollbackExecution(rollbackChange.getData().getId(), releaseId,
+                publishResult.beforeContent(), publishResult.beforeHash(), confirmed.content(), confirmed.contentHash(),
+                operatorId, publishResult.effectiveHint());
     }
 
     private GovernanceTargetAdapter adapter(GovernanceDomain domain) {
@@ -276,6 +336,7 @@ public class GovernancePublishService {
     }
 
     private String nextNo(String prefix) {
-        return prefix + "-" + LocalDateTime.now().format(NO_FORMATTER);
+        return prefix + "-" + LocalDateTime.now().format(NO_FORMATTER) + "-"
+                + UUID.randomUUID().toString().substring(0, 8);
     }
 }

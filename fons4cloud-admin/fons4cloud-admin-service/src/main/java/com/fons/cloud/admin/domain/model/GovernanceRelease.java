@@ -101,15 +101,45 @@ public class GovernanceRelease {
      * @param errorMessage 确认失败摘要
      */
     public void markPendingConfirm(String errorMessage) {
+        markPendingConfirm(errorMessage, null);
+    }
+
+    public void markPendingConfirm(String errorMessage, String expectedAfterHash) {
         requireRunning();
         entity.setStatus(GovernanceReleaseStatus.PENDING_CONFIRM.name());
+        entity.setAfterHash(expectedAfterHash);
         entity.setErrorCode(AdminResultCode.ADMIN_PUBLISH_CONFIRM_FAILED.getCode());
         entity.setErrorMessage(GovernanceAudit.mask(errorMessage));
         entity.setFinishedAt(new Date());
     }
 
+    /** 恢复任务确认外部目标已经写入成功。 */
+    public void confirmSuccess(String afterHash) {
+        requirePendingConfirm();
+        entity.setStatus(GovernanceReleaseStatus.SUCCESS.name());
+        entity.setAfterHash(afterHash);
+        entity.setErrorCode(null);
+        entity.setErrorMessage(null);
+        entity.setFinishedAt(new Date());
+    }
+
+    /** 恢复任务确认目标仍为执行前状态。 */
+    public void confirmNotApplied() {
+        requirePendingConfirm();
+        entity.setStatus(GovernanceReleaseStatus.FAILED.name());
+        entity.setErrorCode(AdminResultCode.ADMIN_PUBLISH_CONFIRM_FAILED.getCode());
+        entity.setErrorMessage("目标仍为执行前版本，发布未生效");
+        entity.setFinishedAt(new Date());
+    }
+
     private void requireRunning() {
         if (!GovernanceReleaseStatus.RUNNING.name().equals(entity.getStatus())) {
+            throw new BizException(AdminResultCode.ADMIN_TARGET_UNAVAILABLE);
+        }
+    }
+
+    private void requirePendingConfirm() {
+        if (!GovernanceReleaseStatus.PENDING_CONFIRM.name().equals(entity.getStatus())) {
             throw new BizException(AdminResultCode.ADMIN_TARGET_UNAVAILABLE);
         }
     }

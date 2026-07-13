@@ -9,17 +9,21 @@ spring:
     name: admin-service
   main:
     allow-bean-definition-overriding: true
-
   config:
     import:
       - classpath:nacos_config.yml
       - nacos:@profiles.active@.yaml
       - nacos:redis.yaml
       - nacos:datasource-admin.yaml
-
-  freemarker:
-    template-loader-path:
-      - classpath:/template/
-    suffix: .ftl
-  mvc:
-    static-path-pattern: /static/*
+sys:
+  admin:
+    environment:
+      name: ${ADMIN_ENVIRONMENT_NAME:本地开发环境}
+    auth:
+      client-id: sys-admin
+      client-secret: ${ADMIN_AUTH_CLIENT_SECRET:e10adc3949ba59abbe56e057f20f883e}
+      refresh-cookie-name: fons4cloud-admin-refresh
+      refresh-cookie-path: /admin/auth
+      refresh-cookie-secure: ${ADMIN_REFRESH_COOKIE_SECURE:false}
+      refresh-cookie-same-site: Strict
+      refresh-cookie-max-age-seconds: 604800

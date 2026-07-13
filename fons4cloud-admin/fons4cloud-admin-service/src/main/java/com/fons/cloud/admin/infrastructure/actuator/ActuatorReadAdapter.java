@@ -73,10 +73,17 @@ public class ActuatorReadAdapter {
         if (instances.isEmpty()) {
             return unavailable(request.getServiceName(), endpointPath, "未发现可探测服务实例");
         }
+        com.fons.cloud.admin.api.response.ServiceInstanceResponse selected = instances.stream()
+                .filter(instance -> StringUtils.equals(instance.getInstanceId(), request.getInstanceId()))
+                .findFirst()
+                .orElse(null);
+        if (selected == null) {
+            return unavailable(request.getServiceName(), endpointPath, "指定服务实例不存在或已下线");
+        }
         URI targetUri = UriComponentsBuilder.newInstance()
                 .scheme("http")
-                .host(instances.get(0).getHost())
-                .port(instances.get(0).getPort())
+                .host(selected.getHost())
+                .port(selected.getPort())
                 .path(endpointPath)
                 .build()
                 .toUri();

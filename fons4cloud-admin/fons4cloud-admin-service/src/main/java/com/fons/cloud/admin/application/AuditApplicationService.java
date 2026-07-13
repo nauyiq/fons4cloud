@@ -1,12 +1,14 @@
 package com.fons.cloud.admin.application;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.fons.cloud.admin.api.request.AuditQueryRequest;
 import com.fons.cloud.admin.api.response.GovernanceAuditResponse;
 import com.fons.cloud.admin.domain.entity.AdminGovernanceAudit;
 import com.fons.cloud.admin.domain.mapper.AdminGovernanceAuditMapper;
 import com.fons.cloud.admin.domain.model.GovernanceAudit;
 import com.fons.cloud.common.result.R;
+import com.fons.cloud.admin.interfaces.rest.api.model.PageResponse;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
@@ -40,6 +42,23 @@ public class AuditApplicationService {
      * @return 审计响应列表
      */
     public R<List<GovernanceAuditResponse>> query(AuditQueryRequest request) {
+        LambdaQueryWrapper<AdminGovernanceAudit> wrapper = queryWrapper(request);
+        wrapper.last("LIMIT 100");
+        return R.ok(adminGovernanceAuditMapper.selectList(wrapper).stream().map(this::toResponse).toList());
+    }
+
+    /** 强制上限的审计分页查询。 */
+    public R<PageResponse<GovernanceAuditResponse>> queryPage(AuditQueryRequest request, int offset, int limit) {
+        int safeLimit = Math.min(100, Math.max(1, limit));
+        int safeOffset = Math.max(0, offset);
+        long current = safeOffset / safeLimit + 1L;
+        Page<AdminGovernanceAudit> page = adminGovernanceAuditMapper.selectPage(new Page<>(current, safeLimit),
+                queryWrapper(request));
+        return R.ok(new PageResponse<>(page.getRecords().stream().map(this::toResponse).toList(), page.getTotal(),
+                safeOffset, safeLimit));
+    }
+
+    private LambdaQueryWrapper<AdminGovernanceAudit> queryWrapper(AuditQueryRequest request) {
         LambdaQueryWrapper<AdminGovernanceAudit> wrapper = new LambdaQueryWrapper<>();
         if (request != null) {
             if (request.getDomain() != null) {
@@ -65,7 +84,7 @@ public class AuditApplicationService {
             }
         }
         wrapper.orderByDesc(AdminGovernanceAudit::getOperatedAt);
-        return R.ok(adminGovernanceAuditMapper.selectList(wrapper).stream().map(this::toResponse).toList());
+        return wrapper;
     }
 
     /**
@@ -91,9 +110,9 @@ public class AuditApplicationService {
                 .requestId(audit.getRequestId())
                 .clientIp(audit.getClientIp())
                 .result(audit.getResult())
-                .detailSummary(audit.getDetailSummary())
+                .detailSummary(GovernanceAudit.mask(audit.getDetailSummary()))
                 .errorCode(audit.getErrorCode())
-                .errorMessage(audit.getErrorMessage())
+                .errorMessage(GovernanceAudit.mask(audit.getErrorMessage()))
                 .operatedAt(audit.getOperatedAt())
                 .build();
     }

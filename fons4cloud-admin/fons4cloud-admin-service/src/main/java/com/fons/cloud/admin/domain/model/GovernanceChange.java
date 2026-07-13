@@ -106,6 +106,19 @@ public class GovernanceChange {
     }
 
     /**
+     * 更新仍可编辑的草稿正文，并清理上一次失败校验结果。
+     */
+    public void updateDraft(String content, String description, String operatorId) {
+        requireStatus(AdminResultCode.ADMIN_DRAFT_NOT_EDITABLE, GovernanceChangeStatus.DRAFT,
+                GovernanceChangeStatus.VALIDATION_FAILED);
+        entity.setContent(content);
+        entity.setContentHash(hash(content));
+        entity.setDescription(description);
+        entity.setValidationResult(null);
+        transitionTo(GovernanceChangeStatus.DRAFT, operatorId);
+    }
+
+    /**
      * 标记校验通过。
      *
      * @param normalizedContentHash 标准化内容 hash
@@ -206,7 +219,7 @@ public class GovernanceChange {
         transitionTo(GovernanceChangeStatus.ROLLBACK_FAILED, operatorId);
     }
 
-    private GovernanceChangeStatus status() {
+    public GovernanceChangeStatus status() {
         return GovernanceChangeStatus.valueOf(entity.getStatus());
     }
 

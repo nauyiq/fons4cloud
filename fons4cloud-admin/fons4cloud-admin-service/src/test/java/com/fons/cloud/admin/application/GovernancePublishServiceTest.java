@@ -14,6 +14,7 @@ import com.fons.cloud.admin.api.response.GovernanceValidateResult;
 import com.fons.cloud.admin.domain.adapter.GovernanceTargetAdapter;
 import com.fons.cloud.admin.domain.entity.AdminGovernanceChange;
 import com.fons.cloud.admin.domain.entity.AdminGovernanceResource;
+import com.fons.cloud.admin.domain.entity.AdminGovernanceRelease;
 import com.fons.cloud.admin.domain.entity.AdminGovernanceSnapshot;
 import com.fons.cloud.admin.domain.mapper.AdminGovernanceChangeMapper;
 import com.fons.cloud.admin.domain.mapper.AdminGovernanceResourceMapper;
@@ -104,11 +105,14 @@ class GovernancePublishServiceTest {
         AdminGovernanceChange change = change(10L, 100L, GovernanceChangeStatus.VALIDATED);
         when(changeMapper.selectById(10L)).thenReturn(change);
         when(resourceMapper.selectById(100L)).thenReturn(resource());
-        when(adapter.loadCurrent(any())).thenReturn(new GovernanceTargetAdapter.CurrentConfig("{\"old\":true}",
-                "hash-base", "gateway-routing.json"));
+        when(adapter.loadCurrent(any())).thenReturn(
+                new GovernanceTargetAdapter.CurrentConfig("{\"old\":true}", "hash-base", "gateway-routing.json"),
+                new GovernanceTargetAdapter.CurrentConfig("{\"new\":true}", "hash-new", "gateway-routing.json"));
+        when(changeApplicationService.beginPublishExecution(any(), any(), any(), any()))
+                .thenReturn(R.ok(release(20L)));
         when(adapter.publish(any(), any())).thenReturn(new GovernanceTargetAdapter.AdapterPublishResult(true,
                 "{\"old\":true}", "hash-base", "{\"new\":true}", "hash-new", null, null, "Nacos监听刷新"));
-        when(changeApplicationService.publishSucceeded(any(), any(), any(), any(), any(), any(), any(), any()))
+        when(changeApplicationService.completePublishExecution(any(), any(), any(), any(), any(), any(), any(), any()))
                 .thenReturn(R.ok(GovernancePublishResult.builder().status(GovernanceReleaseStatus.SUCCESS).build()));
 
         R<GovernancePublishResult> response = governancePublishService.publish(GovernancePublishRequest.builder()
@@ -120,6 +124,8 @@ class GovernancePublishServiceTest {
         assertThat(response.isSuccess()).isTrue();
         assertThat(response.getData().getStatus()).isEqualTo(GovernanceReleaseStatus.SUCCESS);
         verify(adapter).publish(any(), any());
+        verify(changeApplicationService).beginPublishExecution(any(), any(), any(), any());
+        verify(changeApplicationService).completePublishExecution(any(), any(), any(), any(), any(), any(), any(), any());
         verify(resourceMapper).updateById(any(AdminGovernanceResource.class));
     }
 
@@ -130,7 +136,9 @@ class GovernancePublishServiceTest {
         when(resourceMapper.selectById(100L)).thenReturn(resource());
         when(adapter.loadCurrent(any())).thenReturn(new GovernanceTargetAdapter.CurrentConfig("{\"ops\":true}",
                 "hash-ops", "gateway-routing.json"));
-        when(changeApplicationService.detectDrift(any(), any(), any(), any(), any()))
+        when(changeApplicationService.beginPublishExecution(any(), any(), any(), any()))
+                .thenReturn(R.ok(release(21L)));
+        when(changeApplicationService.driftPublishExecution(any(), any(), any(), any(), any()))
                 .thenReturn(R.ok(GovernancePublishResult.builder()
                         .status(GovernanceReleaseStatus.DRIFT_DETECTED)
                         .build()));
@@ -141,7 +149,31 @@ class GovernancePublishServiceTest {
                 .build(), "operator");
 
         assertThat(response.getData().getStatus()).isEqualTo(GovernanceReleaseStatus.DRIFT_DETECTED);
-        verify(changeApplicationService).detectDrift(any(), any(), any(), any(), any());
+        verify(changeApplicationService).driftPublishExecution(any(), any(), any(), any(), any());
+    }
+
+    @Test
+    void publishShouldRemainPendingConfirmWhenReadbackFails() {
+        AdminGovernanceChange change = change(10L, 100L, GovernanceChangeStatus.VALIDATED);
+        when(changeMapper.selectById(10L)).thenReturn(change);
+        when(resourceMapper.selectById(100L)).thenReturn(resource());
+        when(adapter.loadCurrent(any()))
+                .thenReturn(new GovernanceTargetAdapter.CurrentConfig("{\"old\":true}", "hash-base",
+                        "gateway-routing.json"))
+                .thenThrow(new IllegalStateException("readback unavailable"));
+        when(changeApplicationService.beginPublishExecution(any(), any(), any(), any()))
+                .thenReturn(R.ok(release(22L)));
+        when(adapter.publish(any(), any())).thenReturn(new GovernanceTargetAdapter.AdapterPublishResult(true,
+                "{\"old\":true}", "hash-base", "{\"new\":true}", "hash-new", null, null, null));
+        when(changeApplicationService.pendingConfirmExecution(any(), any(), any(), any(), any(), any(), any()))
+                .thenReturn(R.ok(GovernancePublishResult.builder()
+                        .status(GovernanceReleaseStatus.PENDING_CONFIRM).build()));
+
+        R<GovernancePublishResult> response = governancePublishService.publish(GovernancePublishRequest.builder()
+                .draftId(10L).expectedBaseHash("hash-base").build(), "operator");
+
+        assertThat(response.getData().getStatus()).isEqualTo(GovernanceReleaseStatus.PENDING_CONFIRM);
+        verify(changeApplicationService).pendingConfirmExecution(any(), any(), any(), any(), any(), any(), any());
     }
 
     @Test
@@ -161,6 +193,39 @@ class GovernancePublishServiceTest {
 
         assertThat(response.isSuccess()).isFalse();
         assertThat(response.getCode()).isEqualTo(AdminResultCode.ADMIN_ROLLBACK_UNSUPPORTED.getCode());
+    }
+
+    @Test
+    void rollbackShouldClaimBeforeWriteAndCompleteAfterReadback() {
+        AdminGovernanceSnapshot snapshot = new AdminGovernanceSnapshot();
+        snapshot.setId(900L);
+        snapshot.setResourceId(100L);
+        snapshot.setContent("{\"old\":true}");
+        snapshot.setContentHash("hash-rollback");
+        when(snapshotMapper.selectById(900L)).thenReturn(snapshot);
+        when(resourceMapper.selectById(100L)).thenReturn(resource());
+        when(adapter.rollbackSupported(any())).thenReturn(true);
+        AdminGovernanceChange rollbackChange = change(30L, 100L, GovernanceChangeStatus.VALIDATED);
+        rollbackChange.setChangeType(GovernanceChangeType.ROLLBACK.name());
+        when(changeApplicationService.createRollbackChange(any(), any(), any(), any()))
+                .thenReturn(R.ok(rollbackChange));
+        when(adapter.loadCurrent(any())).thenReturn(
+                new GovernanceTargetAdapter.CurrentConfig("{\"new\":true}", "hash-new", "gateway-routing.json"),
+                new GovernanceTargetAdapter.CurrentConfig("{\"old\":true}", "hash-rollback", "gateway-routing.json"));
+        when(changeApplicationService.beginRollbackExecution(any(), any(), any(), any()))
+                .thenReturn(R.ok(release(31L)));
+        when(adapter.publish(any(), any())).thenReturn(new GovernanceTargetAdapter.AdapterPublishResult(true,
+                "{\"new\":true}", "hash-new", "{\"old\":true}", "hash-rollback", null, null, null));
+        when(changeApplicationService.completeRollbackExecution(any(), any(), any(), any(), any(), any(), any(), any()))
+                .thenReturn(R.ok(GovernancePublishResult.builder().status(GovernanceReleaseStatus.SUCCESS).build()));
+
+        R<GovernancePublishResult> response = governancePublishService.rollback(GovernanceRollbackRequest.builder()
+                .snapshotId(900L).expectedCurrentHash("hash-new").rollbackReason("restore").build(), "operator");
+
+        assertThat(response.getData().getStatus()).isEqualTo(GovernanceReleaseStatus.SUCCESS);
+        verify(changeApplicationService).beginRollbackExecution(any(), any(), any(), any());
+        verify(adapter).publish(any(), any());
+        verify(changeApplicationService).completeRollbackExecution(any(), any(), any(), any(), any(), any(), any(), any());
     }
 
     private GovernanceDraftCreateRequest draftRequest() {
@@ -197,5 +262,12 @@ class GovernancePublishServiceTest {
         change.setContent("{\"new\":true}");
         change.setContentHash("hash-new");
         return change;
+    }
+
+    private AdminGovernanceRelease release(Long id) {
+        AdminGovernanceRelease release = new AdminGovernanceRelease();
+        release.setId(id);
+        release.setStatus(GovernanceReleaseStatus.RUNNING.name());
+        return release;
     }
 }

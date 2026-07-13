@@ -9,7 +9,11 @@ import com.fons.cloud.admin.api.response.GovernancePublishResult;
 import com.fons.cloud.admin.api.response.GovernanceValidateResult;
 import com.fons.cloud.admin.application.ChangeApplicationService;
 import com.fons.cloud.admin.application.GovernancePublishService;
+import com.fons.cloud.admin.application.GovernanceExecutionRecoveryService;
 import com.fons.cloud.admin.infrastructure.security.AdminPermission;
+import com.fons.cloud.admin.interfaces.rest.api.model.GovernanceDraftUpdateRequest;
+import com.fons.cloud.admin.interfaces.rest.api.model.ChangeDetailResponse;
+import com.fons.cloud.admin.interfaces.rest.api.model.PageResponse;
 import com.fons.cloud.auth.annotation.AuthenticationResource;
 import com.fons.cloud.auth.utils.AuthUtils;
 import com.fons.cloud.common.result.R;
@@ -21,6 +25,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
@@ -35,6 +40,7 @@ public class ChangeController {
 
     private final ChangeApplicationService changeApplicationService;
     private final GovernancePublishService governancePublishService;
+    private final GovernanceExecutionRecoveryService governanceExecutionRecoveryService;
 
     /**
      * 查询治理变更列表。
@@ -51,6 +57,17 @@ public class ChangeController {
         return changeApplicationService.query(resourceId, status);
     }
 
+    @GetMapping("/page")
+    @AuthenticationResource(authorities = "ADMIN")
+    @AdminPermission(authorities = AdminPermissionCodes.CHANGES_VIEW)
+    public R<PageResponse<GovernanceChangeResponse>> queryPage(
+            @RequestParam(required = false) Long resourceId,
+            @RequestParam(required = false) String status,
+            @RequestParam(defaultValue = "0") int offset,
+            @RequestParam(defaultValue = "20") int limit) {
+        return changeApplicationService.queryPage(resourceId, status, offset, limit);
+    }
+
     /**
      * 查询治理变更详情。
      *
@@ -62,6 +79,21 @@ public class ChangeController {
     @AdminPermission(authorities = AdminPermissionCodes.CHANGES_VIEW)
     public R<GovernanceChangeResponse> getById(@PathVariable Long id) {
         return changeApplicationService.getById(id);
+    }
+
+    @GetMapping("/{id}/detail")
+    @AuthenticationResource(authorities = "ADMIN")
+    @AdminPermission(authorities = AdminPermissionCodes.CHANGES_VIEW)
+    public R<ChangeDetailResponse> getDetail(@PathVariable Long id) {
+        return changeApplicationService.getDetail(id);
+    }
+
+    @PutMapping("/{id}")
+    @AuthenticationResource(authorities = "ADMIN")
+    @AdminPermission(authorities = AdminPermissionCodes.CHANGES_EDIT)
+    public R<GovernanceChangeResponse> updateDraft(@PathVariable Long id,
+                                                   @Valid @RequestBody GovernanceDraftUpdateRequest request) {
+        return changeApplicationService.updateDraft(id, request.content(), request.description(), currentOperatorId());
     }
 
     /**
@@ -120,6 +152,13 @@ public class ChangeController {
     public R<GovernancePublishResult> rollback(@PathVariable Long id,
                                                @Valid @RequestBody GovernanceRollbackRequest request) {
         return governancePublishService.rollback(request, currentOperatorId());
+    }
+
+    @PostMapping("/releases/{releaseId}/recover")
+    @AuthenticationResource(authorities = "ADMIN")
+    @AdminPermission(authorities = AdminPermissionCodes.CHANGES_PUBLISH)
+    public R<GovernancePublishResult> recover(@PathVariable Long releaseId) {
+        return governanceExecutionRecoveryService.recover(releaseId, currentOperatorId());
     }
 
     private String currentOperatorId() {

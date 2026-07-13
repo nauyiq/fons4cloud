@@ -100,6 +100,16 @@ class AdminSecurityInterceptorTest {
         assertThat(allowed).isTrue();
     }
 
+    @Test
+    void preHandleShouldAllowBoundAdminForExplicitEmptyPermission() throws Exception {
+        when(adminAuthorizationService.authorizeAdmin(any())).thenReturn(AdminAuthorizationDecision.allow());
+
+        boolean allowed = adminSecurityInterceptor.preHandle(requestWithAuthUser(), new MockHttpServletResponse(),
+                handler("boundAdminOnly"));
+
+        assertThat(allowed).isTrue();
+    }
+
     private MockHttpServletRequest requestWithAuthUser() {
         MockHttpServletRequest request = new MockHttpServletRequest();
         DefaultAuthUser authUser = new DefaultAuthUser(1L, "root", "root@example.com", "13800000000", UserRole.ADMIN, List.of());
@@ -117,6 +127,10 @@ class AdminSecurityInterceptorTest {
 
         @AdminPermission(authorities = AdminPermissionCodes.ACCESS_VIEW)
         void viewUsers() {
+        }
+
+        @AdminPermission(authorities = {})
+        void boundAdminOnly() {
         }
 
         void unconfigured() {

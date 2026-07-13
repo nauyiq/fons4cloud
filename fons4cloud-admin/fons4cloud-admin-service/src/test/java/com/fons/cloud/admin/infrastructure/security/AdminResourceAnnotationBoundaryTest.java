@@ -9,6 +9,7 @@ import com.fons.cloud.admin.interfaces.rest.GatewayGovernanceController;
 import com.fons.cloud.admin.interfaces.rest.ObservabilityController;
 import com.fons.cloud.admin.interfaces.rest.ServiceGovernanceController;
 import com.fons.cloud.admin.interfaces.rest.TrafficGovernanceController;
+import com.fons.cloud.admin.interfaces.rest.api.AdminSessionController;
 import com.fons.cloud.auth.annotation.AuthenticationResource;
 import com.fons.cloud.web.annotation.BsWebAdvice;
 import org.junit.jupiter.api.Test;
@@ -95,6 +96,7 @@ class AdminResourceAnnotationBoundaryTest {
                 ObservabilityController.class,
                 ServiceGovernanceController.class,
                 TrafficGovernanceController.class,
+                AdminSessionController.class,
                 AdminAuthController.class
         ).stream().flatMap(type -> Arrays.stream(type.getDeclaredMethods())).toList();
     }

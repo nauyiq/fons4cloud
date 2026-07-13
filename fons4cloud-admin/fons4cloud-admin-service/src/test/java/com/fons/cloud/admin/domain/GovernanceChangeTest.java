@@ -64,6 +64,20 @@ class GovernanceChangeTest {
         assertThat(entity.getStatus()).isEqualTo(GovernanceChangeStatus.DRIFT_DETECTED.name());
     }
 
+    @Test
+    void validationFailedDraftShouldBeEditableAndReturnToDraft() {
+        AdminGovernanceChange entity = change(GovernanceChangeStatus.VALIDATION_FAILED, GovernanceChangeType.UPDATE);
+        entity.setValidationResult("contains-secret=false");
+        GovernanceChange change = GovernanceChange.from(entity);
+
+        change.updateDraft("{\"route\":\"updated\"}", "fix validation", "editor");
+
+        assertThat(entity.getStatus()).isEqualTo(GovernanceChangeStatus.DRAFT.name());
+        assertThat(entity.getValidationResult()).isNull();
+        assertThat(entity.getContentHash()).hasSize(64);
+        assertThat(entity.getUpdatedBy()).isEqualTo("editor");
+    }
+
     private AdminGovernanceChange change(GovernanceChangeStatus status, GovernanceChangeType type) {
         AdminGovernanceChange change = new AdminGovernanceChange();
         change.setId(10L);
