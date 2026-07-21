@@ -1,5 +1,6 @@
 package com.fons.cloud.auth.oauth.core;
 
+import cn.hutool.core.util.StrUtil;
 import com.fons.cloud.auth.domain.entity.Account;
 import com.fons.cloud.auth.domain.entity.OauthClient;
 import com.fons.cloud.auth.domain.service.AccountDomainService;
@@ -35,7 +36,11 @@ public class DefaultUserDetailServiceImpl implements UserDetailsServiceWrapper {
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        Account account = service.queryAccountByUniqueIndex(username);
+        String[] clientIdAndUsername = username.split(StrUtil.COLON);
+        String clientId = clientIdAndUsername[0];
+        String name = clientIdAndUsername[1];
+
+        Account account = service.queryAccountByUsernameAndClientId(name, clientId);
         if (Objects.isNull(account)) {
             throw new UsernameNotFoundException(AccountResultCode.ACCOUNT_NOT_FOUND.message);
         }

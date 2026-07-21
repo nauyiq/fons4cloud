@@ -223,9 +223,10 @@ public class AuthenticationApplicationServiceImpl implements AuthenticationAppli
     private SecurityAuthUser authenticateUser(AuthenticateRequest request) {
         GrantType grantType = request.getGrantType();
         String username = request.getAccessAccount();
+        final String clientIdAndUsername = request.getClientId() + ":" + username;
 
         // 加载用户信息
-        UserDetails userDetails = userDetailsService.loadUserByUsername(username);
+        UserDetails userDetails = userDetailsService.loadUserByUsername(clientIdAndUsername);
         Assert.notNull(userDetails, () -> new BizException(AccountResultCode.ACCOUNT_NOT_FOUND));
 
         SecurityAuthUser securityAuthUser = (SecurityAuthUser) userDetails;

@@ -37,5 +37,12 @@ public interface AccountDomainService extends IService<Account> {
      */
     Account queryAccountByUniqueIndex(String uniqueIndex);
 
+    /**
+     * 根据用户名和客户端id查询账户信息
+     * @param username    用户名
+     * @param clientId    客户端id
+     * @return            Account
+     */
+    Account queryAccountByUsernameAndClientId(String username, String clientId);
 
 }

@@ -50,5 +50,12 @@ public class AccountDomainServiceImpl extends ServiceImpl<AccountMapper, Account
         return getBaseMapper().queryAccountByUniqueIndex(uniqueIndex);
     }
 
-
+    @Override
+    public Account queryAccountByUsernameAndClientId(String username, String clientId) {
+        QueryWrapper<Account> query = Wrappers.query(Account.class);
+        query.eq("username", username);
+        query.eq("client_id", clientId);
+        query.eq("deleted", false);
+        return getOne(query);
+    }
 }

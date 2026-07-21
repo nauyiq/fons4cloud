@@ -129,8 +129,10 @@ public class DefaultDaoAuthenticationProvider extends AbstractUserDetailsAuthent
             throw new InternalAuthenticationServiceException("UserDetailsService error, not register.");
         }
 
+        final String clientIdAndUsername = clientId + ":" + username;
+
         try {
-            UserDetails loadedUser = optional.get().loadUserByUsername(username);
+            UserDetails loadedUser = optional.get().loadUserByUsername(clientIdAndUsername);
             if (loadedUser == null) {
                 throw new InternalAuthenticationServiceException(
                         "UserDetailsService returned null, which is an interface contract violation");
