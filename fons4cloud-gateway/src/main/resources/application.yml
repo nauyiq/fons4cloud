@@ -14,7 +14,7 @@ spring:
   config:
     import:
       - classpath:nacos_config.yml
-      - nacos:@profiles.active@.yaml
+      - nacos:dubbo.yaml
       - nacos:redis.yaml
   cloud:
     gateway:
