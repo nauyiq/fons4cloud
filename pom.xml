@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
@@ -48,6 +48,9 @@
         <!-- 工具包依赖  -->
         <hutool.version>5.8.43</hutool.version>
         <fast.json.version>2.0.42</fast.json.version>
+
+        <!-- 独立认证（Sa-Token）版本 -->
+        <sa-token.version>1.45.0</sa-token.version>
     </properties>
 
 
@@ -78,6 +81,15 @@
                 <type>pom</type>
                 <scope>import</scope>
                 <version>${springcloud.alibaba.version}</version>
+            </dependency>
+
+            <!-- sa-token 独立认证（供 fons4cloud-auth-satoken 使用） -->
+            <dependency>
+                <groupId>cn.dev33</groupId>
+                <artifactId>sa-token-dependencies</artifactId>
+                <version>${sa-token.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
             </dependency>
         </dependencies>
     </dependencyManagement>

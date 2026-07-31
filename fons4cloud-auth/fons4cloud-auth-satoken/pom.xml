@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>com.fons.cloud</groupId>
+        <artifactId>fons4cloud-auth</artifactId>
+        <version>${revision}</version>
+        <relativePath>../pom.xml</relativePath>
+    </parent>
+
+    <description>独立认证模块，基于 Sa-Token，面向不接入 fons4cloud 认证服务与网关的单点应用；提供登录、会话校验、令牌管理等能力，会话持久化复用 fons4cloud-common-cache 的 Redis 连接</description>
+    <artifactId>fons4cloud-auth-satoken</artifactId>
+    <packaging>jar</packaging>
+
+    <dependencies>
+        <!-- Sa-Token Spring Boot 3 集成（WebMVC 环境） -->
+        <dependency>
+            <groupId>cn.dev33</groupId>
+            <artifactId>sa-token-spring-boot3-starter</artifactId>
+        </dependency>
+
+        <!-- Sa-Token 会话持久化到 Redis（Jackson 序列化），复用 common-cache 提供的 RedisConnectionFactory -->
+        <dependency>
+            <groupId>cn.dev33</groupId>
+            <artifactId>sa-token-redis-jackson</artifactId>
+        </dependency>
+
+        <!-- Web 环境（SaInterceptor / WebMvcConfigurer 依赖） -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+
+        <!-- 复用项目 Redis 连接能力（提供 RedissonClient / RedisConnectionFactory） -->
+        <dependency>
+            <groupId>com.fons.cloud</groupId>
+            <artifactId>fons4cloud-common-cache</artifactId>
+            <version>${revision}</version>
+        </dependency>
+    </dependencies>
+
+</project>

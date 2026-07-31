@@ -12,36 +12,10 @@
 
     <packaging>jar</packaging>
     <artifactId>fons4cloud-common-elasticsearch</artifactId>
-    <properties>
-        <elasticsearch.version>7.17.20</elasticsearch.version>
-<!--        <jakarta-json.version>2.0.1</jakarta-json.version>-->
-    </properties>
-
     <dependencies>
-
-        <!-- elastic -->
-        <dependency>
-            <groupId>org.elasticsearch.client</groupId>
-            <artifactId>elasticsearch-rest-high-level-client</artifactId>
-            <version>${elasticsearch.version}</version>
-        </dependency>
-
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-elasticsearch</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>com.fons.cloud</groupId>
-            <artifactId>fons4cloud-common-util</artifactId>
-            <version>${project.parent.version}</version>
-        </dependency>
-
-        <!-- easy es -->
-        <dependency>
-            <groupId>org.dromara.easy-es</groupId>
-            <artifactId>easy-es-boot-starter</artifactId>
-            <version>2.0.0-beta8</version>
         </dependency>
     </dependencies>
 
