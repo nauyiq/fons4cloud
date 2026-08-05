@@ -12,7 +12,13 @@
 
     <packaging>jar</packaging>
     <artifactId>fons4cloud-common-elasticsearch</artifactId>
+
     <dependencies>
+        <dependency>
+            <groupId>com.fons.cloud</groupId>
+            <artifactId>fons4cloud-common-util</artifactId>
+            <version>${revision}</version>
+        </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-elasticsearch</artifactId>

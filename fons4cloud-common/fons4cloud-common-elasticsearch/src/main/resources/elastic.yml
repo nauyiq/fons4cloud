@@ -1,0 +1,16 @@
+spring:
+  elasticsearch:
+    # ES 8.18.x 地址，多节点用逗号分隔
+    uris: ${ELASTIC_URIS:http://localhost:9200}
+    # 基础认证（与 API Key 二选一；留空则不启用 basic auth）
+    username: ${ELASTIC_USERNAME:}
+    password: ${ELASTIC_PASSWORD:}
+    # 连接超时（建立 TCP 连接）
+    connection-timeout: ${ELASTIC_CONNECTION_TIMEOUT:5s}
+    # socket 超时（覆盖 bulk 写入、delete_by_query、count，发布投影写入量大需留足）
+    socket-timeout: ${ELASTIC_SOCKET_TIMEOUT:60s}
+  data:
+    elasticsearch:
+      repositories:
+        # 项目只用官方 ElasticsearchClient，不启用 Spring Data ES Repository 扫描
+        enabled: false
