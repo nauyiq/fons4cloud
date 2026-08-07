@@ -48,16 +48,20 @@ public class MinioOssStoreService extends AbstractOssStoreService {
     @Override
     protected OssObjectResponse doUpload(String objectKey, OssUploadRequest request) {
         try {
-            PutObjectArgs putObjectArgs = PutObjectArgs.builder()
+            Map<String, String> metadata = copyMetadata(request.getMetadata());
+            String contentType = metadata != null ? metadata.get("content-type") : null;
+            PutObjectArgs.Builder builder = PutObjectArgs.builder()
                     .bucket(getBucket())
                     .object(objectKey)
-                    .userMetadata(copyMetadata(request.getMetadata()))
-                    .stream(request.getInputStream(), UNKNOWN_OBJECT_SIZE, DEFAULT_PART_SIZE)
-                    .build();
-            ObjectWriteResponse response = minioClient.putObject(putObjectArgs);
+                    .userMetadata(metadata)
+                    .stream(request.getInputStream(), UNKNOWN_OBJECT_SIZE, DEFAULT_PART_SIZE);
+            if (contentType != null && !contentType.isBlank()) {
+                builder.contentType(contentType);
+            }
+            ObjectWriteResponse response = minioClient.putObject(builder.build());
             return basicResponse(objectKey)
                     .etag(response.etag())
-                    .metadata(copyMetadata(request.getMetadata()))
+                    .metadata(metadata)
                     .build();
         } catch (Exception e) {
             log.error("Failed to upload object to OSS", e);

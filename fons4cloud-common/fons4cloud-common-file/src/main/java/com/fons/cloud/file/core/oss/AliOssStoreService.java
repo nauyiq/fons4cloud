@@ -42,13 +42,18 @@ public class AliOssStoreService extends AbstractOssStoreService implements Dispo
     @Override
     protected OssObjectResponse doUpload(String objectKey, OssUploadRequest request) {
         try {
+            Map<String, String> userMeta = copyMetadata(request.getMetadata());
             ObjectMetadata metadata = new ObjectMetadata();
-            metadata.setUserMetadata(copyMetadata(request.getMetadata()));
+            metadata.setUserMetadata(userMeta);
+            String contentType = userMeta != null ? userMeta.get("content-type") : null;
+            if (contentType != null && !contentType.isBlank()) {
+                metadata.setContentType(contentType);
+            }
             PutObjectRequest putObjectRequest = new PutObjectRequest(getBucket(), objectKey, request.getInputStream(), metadata);
             PutObjectResult result = ossClient.putObject(putObjectRequest);
             return basicResponse(objectKey)
                     .etag(result.getETag())
-                    .metadata(copyMetadata(request.getMetadata()))
+                    .metadata(userMeta)
                     .build();
         } catch (Exception ignored) {
             throw operationFailed();
