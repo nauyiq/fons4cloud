@@ -15,6 +15,10 @@ public class R<T> extends Response {
 
     private T data;
 
+    public boolean isDuplicateSuccess() {
+        return isSuccess() && ResultCode.DUPLICATE_SUCCESS.getCode().equals(this.getCode());
+    }
+
     public static <T> R<T> ok() {
         return setResult(true, ResultCode.SUCCESS);
     }
@@ -29,6 +33,9 @@ public class R<T> extends Response {
 
     public static <T> R<T> success() {
         return setResult(true, ResultCode.SUCCESS);
+    }
+    public static <T> R<T> duplicateSuccess(T data) {
+        return setResult(true, ResultCode.DUPLICATE_SUCCESS, data);
     }
 
     public static <T> R<T> success(T data) {
