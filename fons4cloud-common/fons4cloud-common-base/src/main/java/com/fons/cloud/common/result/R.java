@@ -58,8 +58,16 @@ public class R<T> extends Response {
         return setResult(false, code, message, null);
     }
 
+    public static <T> R<T> failed(String code, String message, T data) {
+        return setResult(false, code, message, data);
+    }
+
     public static <T> R<T> failed(Result result) {
         return setResult(false, result);
+    }
+
+    public static <T> R<T> failed(Result result, T data) {
+        return setResult(false, result, data);
     }
 
     public static <T> R<T> setResult(boolean result, Result resultCode) {
