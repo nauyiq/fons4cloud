@@ -42,6 +42,10 @@ public class R<T> extends Response {
         return setResult(true, ResultCode.SUCCESS, data);
     }
 
+    public static <T> R<T> success(Result result, T data) {
+        return setResult(true, result, data);
+    }
+
     public static <T> R<T> success(String code, String message, T data) {
         return setResult(true, code, message, data);
     }
