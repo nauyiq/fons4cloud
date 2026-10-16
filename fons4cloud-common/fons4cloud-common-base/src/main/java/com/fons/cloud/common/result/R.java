@@ -1,5 +1,6 @@
 package com.fons.cloud.common.result;
 
+import com.alibaba.fastjson2.annotation.JSONField;
 import com.fons.cloud.common.response.Response;
 import lombok.Getter;
 import lombok.Setter;
@@ -15,6 +16,7 @@ public class R<T> extends Response {
 
     private T data;
 
+    @JSONField(serialize = false)
     public boolean isDuplicateSuccess() {
         return isSuccess() && ResultCode.DUPLICATE_SUCCESS.getCode().equals(this.getCode());
     }
