@@ -1,7 +1,10 @@
 package com.fons.cloud.file.common;
 
+import org.apache.commons.lang3.StringUtils;
+
+import cn.hutool.core.lang.Assert;
+
 import cn.hutool.core.util.StrUtil;
-import com.fons.cloud.util.AssertUtil;
 import org.springframework.util.FileCopyUtils;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -32,7 +35,7 @@ public class MultipartFileAdaptor implements MultipartFile {
 
     public MultipartFileAdaptor(String name, String originalFilename, String contentType,
                                 byte[] content) {
-        AssertUtil.notEmpty(name, "Name should not be empty.");
+        Assert.isTrue(StringUtils.isNotBlank(name), () -> new RuntimeException("Name should not be empty."));
         this.name = name;
         this.originalFilename = (StrUtil.isNotBlank(originalFilename) ? originalFilename : name);
         this.contentType = contentType;

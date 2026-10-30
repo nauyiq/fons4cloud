@@ -1,8 +1,13 @@
-package com.fons.cloud.web.filter;
+package com.fons.cloud.auth.web.filter;
 
+import com.fons.cloud.auth.web.utils.TokenUtil;
 import com.fons.cloud.common.base.lang.StringConstants;
-import com.fons.cloud.web.utils.TokenUtil;
-import jakarta.servlet.*;
+import jakarta.servlet.Filter;
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.FilterConfig;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.ServletRequest;
+import jakarta.servlet.ServletResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -15,6 +20,10 @@ import java.io.IOException;
 import java.util.List;
 
 /**
+ * 一次性Token校验过滤器
+ * <p>对声明需要全局幂等校验的接口（@BsWebAdvice(requiredIdentifier = true)）做一次性token验证：
+ * Redis 中 GET 后立即 DEL，验证通过即失效，防止重放。拦截的 URL 范围由
+ * AuthorizationResourceRepository 中注册的幂等 token URI 决定。</p>
  * @author qiyuan.hong
  * @date 2024/7/18
  */

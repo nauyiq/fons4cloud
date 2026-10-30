@@ -1,9 +1,10 @@
 package com.fons.cloud.cache.redis.stream.support;
 
+import cn.hutool.core.lang.Assert;
+
 import cn.hutool.core.util.StrUtil;
 import com.fons.cloud.common.base.lang.StringConstants;
 import com.fons.cloud.cache.redis.stream.RedisStreamService;
-import com.fons.cloud.util.AssertUtil;
 import com.fons.cloud.util.JsonUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -34,8 +35,7 @@ public class RedisStreamServiceImpl implements RedisStreamService {
 
     @Override
     public String add(String redisKey, String messageId, Object messageValue) {
-        AssertUtil.isFalse(StringUtils.isBlank(redisKey) || messageValue == null,
-                "Failed execute to add stream message, the param is null.");
+        Assert.isFalse(StringUtils.isBlank(redisKey) || messageValue == null, () -> new RuntimeException("Failed execute to add stream message, the param is null."));
 
         Map<String, Object> streamValueMap = JsonUtil.toMap(messageValue);
         RecordId recordId;
@@ -60,7 +60,7 @@ public class RedisStreamServiceImpl implements RedisStreamService {
 
     @Override
     public Long trim(String redisKey, long count, boolean approximateTrimming) {
-        AssertUtil.notEmpty(redisKey, "Redis key should not be empty.");
+        Assert.isTrue(StringUtils.isNotBlank(redisKey), () -> new RuntimeException("Redis key should not be empty."));
 
         if (count < 0) {
             count = 0;
@@ -71,8 +71,7 @@ public class RedisStreamServiceImpl implements RedisStreamService {
 
     @Override
     public Long del(String redisKey, Collection<String> messageIds) {
-        AssertUtil.isFalse(StringUtils.isBlank(redisKey) || CollectionUtils.isEmpty(messageIds),
-                "Failed execute to del stream message, the param is null.");
+        Assert.isFalse(StringUtils.isBlank(redisKey) || CollectionUtils.isEmpty(messageIds), () -> new RuntimeException("Failed execute to del stream message, the param is null."));
 
         RecordId[] recordIds = messageIds.stream().map(RecordId::of).toArray(RecordId[]::new);
         return this.redisTemplate.opsForStream().delete(redisKey, recordIds);
@@ -80,21 +79,21 @@ public class RedisStreamServiceImpl implements RedisStreamService {
 
     @Override
     public Long len(String redisKey) {
-        AssertUtil.notEmpty(redisKey, "Redis key should not be empty.");
+        Assert.isTrue(StringUtils.isNotBlank(redisKey), () -> new RuntimeException("Redis key should not be empty."));
         return this.redisTemplate.opsForStream().size(redisKey);
     }
 
     @Override
     public List<MapRecord<String, String, Object>> range(String redisKey, Range<String> range) {
-        AssertUtil.notEmpty(redisKey, "Redis key should not be empty.");
-        AssertUtil.notNull(range, "Stream range should not be null.");
+        Assert.isTrue(StringUtils.isNotBlank(redisKey), () -> new RuntimeException("Redis key should not be empty."));
+        Assert.notNull(range, () -> new RuntimeException("Stream range should not be null."));
         StreamOperations<String, String, Object> stream = this.redisTemplate.opsForStream();
         return stream.range(redisKey, range);
     }
 
     @Override
     public void createConsumerGroup(String redisKey, String group, ReadOffset readOffset) {
-        AssertUtil.isFalse(StringUtils.isBlank(redisKey) || StringUtils.isBlank(group), "Failed execute to create consumer group, the params is empty.");
+        Assert.isFalse(StringUtils.isBlank(redisKey) || StringUtils.isBlank(group), () -> new RuntimeException("Failed execute to create consumer group, the params is empty."));
 
         StreamOperations<String, String, Object> stream = this.redisTemplate.opsForStream();
         stream.createGroup(redisKey, readOffset, group);
@@ -102,7 +101,7 @@ public class RedisStreamServiceImpl implements RedisStreamService {
 
     @Override
     public <T> List<ObjectRecord<String, T>> readWithRecord(Class<T> classType, StreamReadOptions options, StreamOffset<String>... streamOffsets) {
-        AssertUtil.isFalse( classType == null || options == null || streamOffsets == null, "Failed execute to read message, the params is empty.");
+        Assert.isFalse( classType == null || options == null || streamOffsets == null, () -> new RuntimeException("Failed execute to read message, the params is empty."));
 
         StreamOperations<String, String, Object> stream = this.redisTemplate.opsForStream();
         return stream.read(classType, options, streamOffsets);
@@ -117,7 +116,7 @@ public class RedisStreamServiceImpl implements RedisStreamService {
 
     @Override
     public <T> List<T> readGroup(String group, String name, Class<T> classType, StreamReadOptions options, StreamOffset<String>... streamOffsets) {
-        AssertUtil.isFalse(StringUtils.isAnyBlank(group, name) || options == null || streamOffsets == null, "Failed execute to read message, the params is empty.");
+        Assert.isFalse(StringUtils.isAnyBlank(group, name) || options == null || streamOffsets == null, () -> new RuntimeException("Failed execute to read message, the params is empty."));
 
         StreamOperations<String, String, Object> stream = this.redisTemplate.opsForStream();
         Consumer consumer = Consumer.from(group, name);
@@ -128,7 +127,7 @@ public class RedisStreamServiceImpl implements RedisStreamService {
 
     @Override
     public <T> List<ObjectRecord<String, T>> readGroupWithRecord(String group, String name, Class<T> classType, StreamReadOptions options, StreamOffset<String>... streamOffsets) {
-        AssertUtil.isFalse(StringUtils.isAnyBlank(group, name) || options == null || streamOffsets == null, "Failed execute to read message, the params is empty.");
+        Assert.isFalse(StringUtils.isAnyBlank(group, name) || options == null || streamOffsets == null, () -> new RuntimeException("Failed execute to read message, the params is empty."));
 
         StreamOperations<String, String, Object> stream = this.redisTemplate.opsForStream();
         Consumer consumer = Consumer.from(group, name);
@@ -137,7 +136,7 @@ public class RedisStreamServiceImpl implements RedisStreamService {
 
     @Override
     public List<String> pending(String redisKey, String group, String name, Range<String> range, long count) {
-        AssertUtil.isFalse(StringUtils.isAnyBlank(redisKey, group, name), "Failed execute to stream pending.");
+        Assert.isFalse(StringUtils.isAnyBlank(redisKey, group, name), () -> new RuntimeException("Failed execute to stream pending."));
 
         StreamOperations<String, String, Object> streamOperations = this.redisTemplate.opsForStream();
 
@@ -148,7 +147,7 @@ public class RedisStreamServiceImpl implements RedisStreamService {
 
     @Override
     public Long ack(String redisKey, String group, String... ids) {
-        AssertUtil.isFalse(StringUtils.isAnyBlank(redisKey, group) || ids.length == 0, "Failed execute to stream ack.");
+        Assert.isFalse(StringUtils.isAnyBlank(redisKey, group) || ids.length == 0, () -> new RuntimeException("Failed execute to stream ack."));
 
         StreamOperations<String, String, Object> streamOperations = this.redisTemplate.opsForStream();
         return streamOperations.acknowledge(redisKey, group, ids);
@@ -156,7 +155,7 @@ public class RedisStreamServiceImpl implements RedisStreamService {
 
     @Override
     public StreamInfo.XInfoConsumers queryConsumers(String redisKey, String group) {
-        AssertUtil.isFalse(StringUtils.isAnyBlank(redisKey, group), "Failed execute to query consumers.");
+        Assert.isFalse(StringUtils.isAnyBlank(redisKey, group), () -> new RuntimeException("Failed execute to query consumers."));
 
         StreamOperations<String, String, Object> streamOperations = this.redisTemplate.opsForStream();
         return streamOperations.consumers(redisKey, group);

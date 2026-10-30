@@ -1,3 +1,2 @@
 com.fons.cloud.web.handler.WebMvcGlobalExceptionHandler
-com.fons.cloud.web.config.WebAutoConfiguration
-com.fons.cloud.web.support.HttpAuthenticationResourceScanner
+com.fons.cloud.web.config.SensitiveWebAutoConfiguration

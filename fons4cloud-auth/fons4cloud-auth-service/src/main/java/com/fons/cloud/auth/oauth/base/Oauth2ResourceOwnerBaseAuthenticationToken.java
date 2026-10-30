@@ -1,6 +1,7 @@
 package com.fons.cloud.auth.oauth.base;
 
-import com.fons.cloud.util.AssertUtil;
+import cn.hutool.core.lang.Assert;
+
 import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
@@ -31,8 +32,8 @@ public abstract class Oauth2ResourceOwnerBaseAuthenticationToken extends Abstrac
                                                       Set<String> scopes,
                                                       Map<String, Object> additionalParameters) {
         super(Collections.emptyList());
-        AssertUtil.notNull(authorizationGrantType, "AuthorizationGrantType should not be null.");
-        AssertUtil.notNull(clientPrincipal, "ClientPrincipal should not be null.");
+        Assert.notNull(authorizationGrantType, () -> new RuntimeException("AuthorizationGrantType should not be null."));
+        Assert.notNull(clientPrincipal, () -> new RuntimeException("ClientPrincipal should not be null."));
 
         this.authorizationGrantType = authorizationGrantType;
         this.clientPrincipal = clientPrincipal;

@@ -1,5 +1,7 @@
 package com.fons.cloud.canal.core.processor;
 
+import cn.hutool.core.lang.Assert;
+
 import com.fons.cloud.canal.common.BinLogEventType;
 import com.fons.cloud.canal.common.OperationType;
 import com.fons.cloud.canal.core.BaseParameterizedTypeReferenceSupport;
@@ -9,7 +11,6 @@ import com.fons.cloud.canal.core.parser.support.ReflectionBinLogEntryFunction;
 import com.fons.cloud.canal.model.CanalBinLogEvent;
 import com.fons.cloud.canal.model.CanalBinLogResult;
 import com.fons.cloud.canal.model.ModelTable;
-import com.fons.cloud.util.AssertUtil;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
@@ -39,10 +40,10 @@ public abstract class BaseCanalBinlogEventProcessor<T> extends BaseParameterized
                            ModelTableMetadataManager modelTableMetadataManager,
                            CanalBinlogEventProcessorFactory canalBinlogEventProcessorFactory,
                            ParseResultInterceptorManager parseResultInterceptorManager) {
-        AssertUtil.notNull(canalBinLogEventParser, "CanalBinLogEventParser should not be null.");
-        AssertUtil.notNull(modelTableMetadataManager, "ModelTableMetadataManager should not be null.");
-        AssertUtil.notNull(canalBinlogEventProcessorFactory, "CanalBinlogEventProcessorFactory should not be null.");
-        AssertUtil.notNull(parseResultInterceptorManager, "ParseResultInterceptorManager should not be null.");
+        Assert.notNull(canalBinLogEventParser, () -> new RuntimeException("CanalBinLogEventParser should not be null."));
+        Assert.notNull(modelTableMetadataManager, () -> new RuntimeException("ModelTableMetadataManager should not be null."));
+        Assert.notNull(canalBinlogEventProcessorFactory, () -> new RuntimeException("CanalBinlogEventProcessorFactory should not be null."));
+        Assert.notNull(parseResultInterceptorManager, () -> new RuntimeException("ParseResultInterceptorManager should not be null."));
         // 确定只需要初始化一次
         if (init.compareAndSet(false, true)) {
             this.canalBinLogEventParser = canalBinLogEventParser;
@@ -63,7 +64,7 @@ public abstract class BaseCanalBinlogEventProcessor<T> extends BaseParameterized
     }
 
     public final void process(CanalBinLogEvent event) {
-        AssertUtil.isTrue(init.get(), String.format("Processor %s Not Init!", getChildKlass().getSimpleName()));
+        Assert.isTrue(init.get(), () -> new RuntimeException(String.format("Processor %s Not Init!", getChildKlass().getSimpleName())));
         ModelTable modelTable = ModelTable.of(event.getDatabase(), event.getTable());
         try {
             onParse(modelTable);

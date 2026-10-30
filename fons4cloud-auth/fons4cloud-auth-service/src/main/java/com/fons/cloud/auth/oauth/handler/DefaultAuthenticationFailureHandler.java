@@ -70,7 +70,7 @@ public class DefaultAuthenticationFailureHandler implements AuthenticationFailur
                 }
                 @Override
                 public String getCode() {
-                    return ResultCode.FAILED.code;
+                    return ResultCode.FAILED.getCode();
                 }
             };
         }

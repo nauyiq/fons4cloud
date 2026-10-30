@@ -1,10 +1,11 @@
 package com.fons.cloud.canal.core.processor.support;
 
+import cn.hutool.core.lang.Assert;
+
 import cn.hutool.core.map.MapUtil;
 import com.fons.cloud.canal.core.processor.BaseCanalBinlogEventProcessor;
 import com.fons.cloud.canal.core.processor.CanalBinlogEventProcessorFactory;
 import com.fons.cloud.canal.model.ModelTable;
-import com.fons.cloud.util.AssertUtil;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -34,7 +35,7 @@ public class InMemoryCanalBinlogEventProcessorFactory implements CanalBinlogEven
     @Override
     public List<BaseCanalBinlogEventProcessor<?>> get(ModelTable modelTable) {
         List<BaseCanalBinlogEventProcessor<?>> processors = cache.get(modelTable);
-        AssertUtil.notEmpty(processors, String.format("Processor Not Found For %s", modelTable));
+        Assert.notEmpty(processors, () -> new RuntimeException(String.format("Processor Not Found For %s", modelTable)));
         return processors;
     }
 

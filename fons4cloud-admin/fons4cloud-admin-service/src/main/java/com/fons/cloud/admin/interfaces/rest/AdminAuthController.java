@@ -10,7 +10,7 @@ import com.fons.cloud.admin.infrastructure.auth.AdminAuthProperties;
 import com.fons.cloud.admin.interfaces.rest.api.model.AdminAccessTokenResponse;
 import com.fons.cloud.auth.annotation.AuthenticationResource;
 import com.fons.cloud.common.result.R;
-import com.fons.cloud.web.annotation.BsWebAdvice;
+import com.fons.cloud.auth.web.annotation.BsWebAdvice;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;

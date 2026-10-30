@@ -9,15 +9,15 @@ import com.fons.cloud.common.result.ResultCode;
 public class SystemIntervalException extends BizException {
 
     public SystemIntervalException(String message) {
-        super(ResultCode.SYSTEM_INTERVAL_ERROR.code, message);
+        super(ResultCode.SYSTEM_INTERVAL_ERROR.getCode(), message);
     }
 
     public SystemIntervalException(Throwable cause) {
-        super(ResultCode.SYSTEM_INTERVAL_ERROR.code, cause);
+        super(ResultCode.SYSTEM_INTERVAL_ERROR.getCode(), cause);
     }
 
     public SystemIntervalException(String message, Throwable cause) {
-        super(ResultCode.SYSTEM_INTERVAL_ERROR.code, message, cause);
+        super(ResultCode.SYSTEM_INTERVAL_ERROR.getCode(), message, cause);
     }
 
     public static SystemIntervalException of(String message) {

@@ -1,5 +1,7 @@
 package com.fons.cloud.canal.core.parser.support;
 
+import cn.hutool.core.lang.Assert;
+
 import cn.hutool.core.map.MapUtil;
 import com.fons.cloud.canal.annotation.CanalField;
 import com.fons.cloud.canal.annotation.CanalModel;
@@ -12,7 +14,6 @@ import com.fons.cloud.canal.core.parser.converter.CanalFieldConvertInput;
 import com.fons.cloud.canal.core.parser.converter.CanalFieldConvertResult;
 import com.fons.cloud.canal.core.parser.converter.CanalFieldConverterFactory;
 import com.fons.cloud.canal.model.ModelTable;
-import com.fons.cloud.util.AssertUtil;
 import com.fons.cloud.util.ReflectUtils;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -35,7 +36,7 @@ public class InMemoryModelTableMetadataManager implements ModelTableMetadataMana
     @Override
     public ModelTableMetadata load(Class<?> klass) {
         return cache.computeIfAbsent(klass, clazz -> {
-            AssertUtil.isTrue(klass.isAnnotationPresent(CanalModel.class), String.format("[%s]没有使用@CanalModel注解", klass.getName()));
+            Assert.isTrue(klass.isAnnotationPresent(CanalModel.class), () -> new RuntimeException(String.format("[%s]没有使用@CanalModel注解", klass.getName())));
             CanalModel canalModel = klass.getAnnotation(CanalModel.class);
             NamingPolicy namingPolicy = canalModel.fieldNamingPolicy();
             ModelTableMetadata metadata = new ModelTableMetadata();

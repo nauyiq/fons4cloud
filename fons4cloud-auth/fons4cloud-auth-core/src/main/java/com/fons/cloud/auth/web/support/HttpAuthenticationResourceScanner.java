@@ -1,10 +1,10 @@
-package com.fons.cloud.web.support;
+package com.fons.cloud.auth.web.support;
 
 import cn.hutool.core.util.StrUtil;
 import com.fons.cloud.auth.annotation.AuthenticationResource;
 import com.fons.cloud.auth.common.AuthorizationResourceDTO;
 import com.fons.cloud.auth.core.AuthorizationResourceRepository;
-import com.fons.cloud.web.annotation.BsWebAdvice;
+import com.fons.cloud.auth.web.annotation.BsWebAdvice;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -12,9 +12,14 @@ import org.springframework.aop.support.AopUtils;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.core.annotation.AnnotationUtils;
-import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.lang.reflect.Method;
 import java.util.Arrays;
@@ -22,14 +27,14 @@ import java.util.HashSet;
 
 /**
  * HTTP权限资源注解扫描器
- * 在Spring容器启动时扫描所有带有@AuthenticationResource注解的方法
- * 并将资源权限信息注册到AuthorizationResourceRepository中
- * 
+ * <p>在Spring容器启动时扫描所有Controller方法上的注解并注册到AuthorizationResourceRepository：
+ * @AuthenticationResource 注册权限资源（资源ID + 权限列表）；
+ * @BsWebAdvice 按接口声明注册 token 访问要求与幂等 token URI。</p>
+ *
  * @author hongqy
  * @date 2025/12/15
  */
 @Slf4j
-@Component
 @RequiredArgsConstructor
 public class HttpAuthenticationResourceScanner implements BeanPostProcessor {
 

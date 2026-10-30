@@ -1,5 +1,7 @@
 package com.fons.cloud.auth.utils;
 
+import org.apache.commons.lang3.StringUtils;
+
 import cn.hutool.core.codec.Base64;
 import cn.hutool.core.util.StrUtil;
 import com.alibaba.fastjson2.JSON;
@@ -10,7 +12,6 @@ import com.fons.cloud.auth.common.AuthUserHeaderConstants;
 import com.fons.cloud.auth.common.UserRole;
 import com.fons.cloud.auth.common.UsernamePasswordAuthentication;
 import com.fons.cloud.common.result.ResultCode;
-import com.fons.cloud.util.AssertUtil;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.experimental.UtilityClass;
 import lombok.extern.slf4j.Slf4j;
@@ -48,7 +49,7 @@ public class AuthUtils {
         // 从请求头获取用户信息
         try {
             String authUserJson = request.getHeader(AuthUserHeaderConstants.AUTH_USER);
-            AssertUtil.notEmpty(authUserJson, "AuthUser is empty from request header.");
+            cn.hutool.core.lang.Assert.isTrue(StringUtils.isNotBlank(authUserJson), () -> new RuntimeException("AuthUser is empty from request header."));
             authUser = JSON.parseObject(Base64.decodeStr(authUserJson), DefaultAuthUser.class);
         } catch (Exception cause) {
             log.error(cause.getMessage(), cause);

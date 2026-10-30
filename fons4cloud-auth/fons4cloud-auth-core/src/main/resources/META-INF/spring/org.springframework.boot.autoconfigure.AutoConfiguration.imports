@@ -1,1 +1,2 @@
 com.fons.cloud.auth.autoconfigure.AuthConfiguration
+com.fons.cloud.auth.web.autoconfigure.AuthWebAutoConfiguration

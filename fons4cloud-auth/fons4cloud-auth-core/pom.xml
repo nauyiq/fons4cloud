@@ -10,7 +10,7 @@
         <relativePath>../pom.xml</relativePath>
     </parent>
 
-    <description>认证模块，提供通用的认证用户基础类、接口、鉴权切面等</description>
+    <description>认证模块，提供通用的认证用户基础类、接口、鉴权切面及框架认证路径的Web集成（token过滤器、认证用户上下文、HTTP权限资源扫描，仅Servlet环境装配）</description>
     <artifactId>fons4cloud-auth-core</artifactId>
     <packaging>jar</packaging>
 

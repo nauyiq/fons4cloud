@@ -11,7 +11,7 @@ import com.fons.cloud.admin.interfaces.rest.ServiceGovernanceController;
 import com.fons.cloud.admin.interfaces.rest.TrafficGovernanceController;
 import com.fons.cloud.admin.interfaces.rest.api.AdminSessionController;
 import com.fons.cloud.auth.annotation.AuthenticationResource;
-import com.fons.cloud.web.annotation.BsWebAdvice;
+import com.fons.cloud.auth.web.annotation.BsWebAdvice;
 import org.junit.jupiter.api.Test;
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.web.bind.annotation.DeleteMapping;

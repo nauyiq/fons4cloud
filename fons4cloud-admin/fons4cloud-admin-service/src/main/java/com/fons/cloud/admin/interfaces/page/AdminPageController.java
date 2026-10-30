@@ -1,6 +1,6 @@
 package com.fons.cloud.admin.interfaces.page;
 
-import com.fons.cloud.web.annotation.BsWebAdvice;
+import com.fons.cloud.auth.web.annotation.BsWebAdvice;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;

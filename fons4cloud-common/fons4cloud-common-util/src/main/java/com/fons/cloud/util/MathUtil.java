@@ -1,5 +1,9 @@
 package com.fons.cloud.util;
 
+import org.apache.commons.lang3.StringUtils;
+
+import cn.hutool.core.lang.Assert;
+
 import com.fons.cloud.util.concurrent.ConsistentHash;
 
 import java.util.List;
@@ -31,7 +35,7 @@ public class MathUtil {
      * @return     hash result code
      */
     public static int fnvHash(String data) {
-        AssertUtil.notEmpty(data, "Hash data should not be empty.");
+        Assert.isTrue(StringUtils.isNotBlank(data), () -> new RuntimeException("Hash data should not be empty."));
 
         final int p = 16777619;
         int hash = (int) 2166136261L;
@@ -54,8 +58,8 @@ public class MathUtil {
      * @return           基因值
      */
     public static String fetchGene(Long id, int geneFactor) {
-        AssertUtil.notNull(id, "Id should not be null.");
-        AssertUtil.isTrue(geneFactor % 2 == 0, "Gene factor must be 2^n");
+        Assert.notNull(id, () -> new RuntimeException("Id should not be null."));
+        Assert.isTrue(geneFactor % 2 == 0, () -> new RuntimeException("Gene factor must be 2^n"));
         int index = (geneFactor / 2) + 1;
         String binaryValue = String.format("%64s", Long.toBinaryString(id)).replace("\\s", "0");
         return binaryValue.substring(64 - index);

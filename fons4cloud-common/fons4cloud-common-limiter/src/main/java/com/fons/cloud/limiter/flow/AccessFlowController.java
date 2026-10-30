@@ -1,10 +1,13 @@
 package com.fons.cloud.limiter.flow;
 
+import org.apache.commons.lang3.StringUtils;
+
+import cn.hutool.core.lang.Assert;
+
 import com.fons.cloud.common.swticher.ServerSwitcher;
 import com.fons.cloud.limiter.api.AbstractLimiter;
 import com.fons.cloud.limiter.core.GuavaCacheTokenBucketLimiter;
 import com.fons.cloud.limiter.core.RedisResourceSlidingWindowsLimiter;
-import com.fons.cloud.util.AssertUtil;
 import com.fons.cloud.util.ReflectUtils;
 import lombok.extern.slf4j.Slf4j;
 
@@ -20,13 +23,13 @@ public class AccessFlowController {
     private final AbstractLimiter redisCacheLimiter;
 
     public AccessFlowController(FlowLimitConfig config) {
-        AssertUtil.notNull(config, "Initialize RedisFlowController failure.");
+        Assert.notNull(config, () -> new RuntimeException("Initialize RedisFlowController failure."));
         redisCacheLimiter = new RedisResourceSlidingWindowsLimiter(config);
         localCacheLimiter = new GuavaCacheTokenBucketLimiter(config);
     }
 
     private String genKey(String resource) {
-        AssertUtil.notEmpty(resource, "Limit resource is empty, please check param.");
+        Assert.isTrue(StringUtils.isNotBlank(resource), () -> new RuntimeException("Limit resource is empty, please check param."));
         if (!resource.startsWith(KEY_PREFIX_STRING)) {
             return KEY_PREFIX_STRING.concat(resource);
         }

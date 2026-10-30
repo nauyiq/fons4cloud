@@ -1,33 +1,31 @@
 package com.fons.cloud.web.handler;
 
 import cn.hutool.json.JSONUtil;
-import com.fons.cloud.common.base.exception.BizException;
 import com.fons.cloud.common.base.lang.exception.NotAuthenticationException;
+import com.fons.cloud.common.exception.BsException;
+import com.fons.cloud.common.exception.ExceptionCode;
+import com.fons.cloud.common.exception.ExceptionType;
 import com.fons.cloud.common.result.R;
 import com.fons.cloud.common.result.ResultCode;
 import com.google.common.collect.Maps;
 import jakarta.servlet.http.HttpServletRequest;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
-import org.springframework.web.bind.annotation.ControllerAdvice;
-import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
 
 /**
  * Spring mvc全局异常处理
- * @author qy
- * @date 2021-08-09 19:28
+ * @author hongqy
  */
-@ControllerAdvice
+@Slf4j
+@RestControllerAdvice
 public class WebMvcGlobalExceptionHandler {
 
-    private static final Logger log = LoggerFactory.getLogger(WebMvcGlobalExceptionHandler.class);
 
     /**
      * 认证未通过异常处理
@@ -50,12 +48,16 @@ public class WebMvcGlobalExceptionHandler {
      */
     @ResponseBody
     @ResponseStatus(HttpStatus.OK)
-    @ExceptionHandler(BizException.class)
-    public R<Boolean> handler(BizException e, HttpServletRequest request) {
-        log.error(e.getMessage(), e);
-        // 异常采集
-//        collectionException(e, request);
-        return R.setResult(false,  e.getCode(), e.getMessage(), null);
+    @ExceptionHandler(BsException.class)
+    public R<Boolean> handler(BsException e, HttpServletRequest request) {
+        ExceptionCode exceptionCode = e.getExceptionCode();
+        ExceptionType type = exceptionCode.exceptionType();
+        if (type == ExceptionType.SYSTEM) {
+            log.error("[SYSTEM-EXCEPTION][{}][{}][{}]", exceptionCode.module(), exceptionCode.getCode(), e.getMessage(), e);
+        } else {
+            log.warn("[BS-EXCEPTION][{}][{}][{}]", exceptionCode.module(), exceptionCode.getCode(), e.getMessage(), e);
+        }
+        return R.setResult(false,  exceptionCode.getCode(), e.getMessage(), null);
     }
 
     /**
@@ -88,8 +90,22 @@ public class WebMvcGlobalExceptionHandler {
             String errorMessage = error.getDefaultMessage();
             errors.put(fieldName, errorMessage);
         });
-        return R.failed(JSONUtil.toJsonStr(errors), ResultCode.PARAMS_ERROR.code);
+        return R.failed(JSONUtil.toJsonStr(errors), ResultCode.PARAMS_ERROR.getCode());
     }
 
+    /**
+     * 请求体不可读异常处理
+     * <p>请求体JSON解析失败、枚举或类型绑定错误属于客户端参数错误，返回400与通用参数错误信息；
+     * 解析细节只记录日志不回传客户端，避免内部信息外泄，也避免落入RuntimeException兜底被记为系统故障。</p>
+     * @param e    请求体不可读异常
+     * @return     参数错误响应
+     */
+    @ResponseBody
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public R<Boolean> handler(HttpMessageNotReadableException e) {
+        log.warn("[HTTP-MESSAGE-NOT-READABLE][{}]", e.getMessage());
+        return R.failed(ResultCode.PARAMS_ERROR);
+    }
 
 }

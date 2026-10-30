@@ -10,7 +10,7 @@
         <relativePath>../pom.xml</relativePath>
     </parent>
 
-    <description>web模块</description>
+    <description>通用web能力模块：统一异常处理、响应脱敏、XSS过滤与web工具；认证路径集成在 fons4cloud-auth-web，本模块与认证体系解耦</description>
     <artifactId>fons4cloud-common-web</artifactId>
 
     <dependencies>
@@ -19,13 +19,12 @@
             <artifactId>spring-boot-starter-web</artifactId>
         </dependency>
 
+        <!-- 通用工具（JsonUtil/XssUtil等），传递提供 common-base（R/异常模型/脱敏核心）与 commons-collections4 -->
         <dependency>
             <groupId>com.fons.cloud</groupId>
-            <artifactId>fons4cloud-auth-core</artifactId>
+            <artifactId>fons4cloud-common-util</artifactId>
             <version>${revision}</version>
         </dependency>
     </dependencies>
-
-
 
 </project>

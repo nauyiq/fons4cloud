@@ -18,15 +18,15 @@ public class R<T> extends Response {
 
     @JSONField(serialize = false)
     public boolean isDuplicateSuccess() {
-        return isSuccess() && ResultCode.DUPLICATE_SUCCESS.getCode().equals(this.getCode());
+        return isSuccess() && SuccessCode.DUPLICATE_SUCCESS.getCode().equals(this.getCode());
     }
 
     public static <T> R<T> ok() {
-        return setResult(true, ResultCode.SUCCESS);
+        return setResult(true, SuccessCode.SUCCESS);
     }
 
     public static <T> R<T> ok(T data) {
-        return setResult(true, ResultCode.SUCCESS, data);
+        return setResult(true, SuccessCode.SUCCESS, data);
     }
 
     public static <T> R<T> ok(String code, String message, T data) {
@@ -34,14 +34,14 @@ public class R<T> extends Response {
     }
 
     public static <T> R<T> success() {
-        return setResult(true, ResultCode.SUCCESS);
+        return setResult(true, SuccessCode.SUCCESS);
     }
     public static <T> R<T> duplicateSuccess(T data) {
-        return setResult(true, ResultCode.DUPLICATE_SUCCESS, data);
+        return setResult(true, SuccessCode.DUPLICATE_SUCCESS, data);
     }
 
     public static <T> R<T> success(T data) {
-        return setResult(true, ResultCode.SUCCESS, data);
+        return setResult(true, SuccessCode.SUCCESS, data);
     }
 
     public static <T> R<T> success(Result result, T data) {
@@ -57,7 +57,7 @@ public class R<T> extends Response {
     }
 
     public static <T> R<T> failed(String message) {
-        return failed(ResultCode.FAILED.code, message);
+        return failed(ResultCode.FAILED.getCode(), message);
     }
 
     public static <T> R<T> failed(String code, String message) {

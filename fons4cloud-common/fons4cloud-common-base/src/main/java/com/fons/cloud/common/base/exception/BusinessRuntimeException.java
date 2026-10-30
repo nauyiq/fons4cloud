@@ -33,7 +33,7 @@ public class BusinessRuntimeException extends BizException {
     }
 
     public static BusinessRuntimeException of(Throwable e) {
-        return new BusinessRuntimeException(ResultCode.UNKNOWN_BUSINESS_EXCEPTION.code, e);
+        return new BusinessRuntimeException(ResultCode.UNKNOWN_BUSINESS_EXCEPTION.getCode(), e);
     }
 
     public static BusinessRuntimeException of(Result result) {

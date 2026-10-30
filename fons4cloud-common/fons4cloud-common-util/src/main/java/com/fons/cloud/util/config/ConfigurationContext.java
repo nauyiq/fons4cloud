@@ -1,8 +1,9 @@
 package com.fons.cloud.util.config;
 
+import cn.hutool.core.lang.Assert;
+
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.system.SystemUtil;
-import com.fons.cloud.util.AssertUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,7 +45,7 @@ public class ConfigurationContext {
     }
 
     public static Properties getProperties(PropertiesEnum propertiesEnum) {
-        AssertUtil.notNull(propertiesEnum, "Properties enum should not be null.");
+        Assert.notNull(propertiesEnum, () -> new RuntimeException("Properties enum should not be null."));
         String fineName = propertiesEnum.fineName;
         return getProperties(fineName);
     }

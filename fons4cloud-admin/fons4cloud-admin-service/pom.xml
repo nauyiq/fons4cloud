@@ -38,6 +38,13 @@
             <version>${revision}</version>
         </dependency>
 
+        <!-- 框架认证路径Web集成：token过滤器、认证用户上下文、权限资源扫描（随 auth-core 提供，仅Servlet环境装配） -->
+        <dependency>
+            <groupId>com.fons.cloud</groupId>
+            <artifactId>fons4cloud-auth-core</artifactId>
+            <version>${revision}</version>
+        </dependency>
+
         <dependency>
             <groupId>com.fons.cloud</groupId>
             <artifactId>fons4cloud-common-db-shardingsphere</artifactId>

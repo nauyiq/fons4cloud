@@ -1,7 +1,7 @@
 package com.fons.cloud.file.common.result;
 
 import cn.hutool.core.util.StrUtil;
-import com.fons.cloud.common.result.ResultCode;
+import com.fons.cloud.common.result.SuccessCode;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -27,7 +27,7 @@ public class UploadResult {
     }
 
     public static UploadResult of(String relativePath, String path) {
-        return new UploadResult(true, ResultCode.SUCCESS.message, relativePath, path);
+        return new UploadResult(true, SuccessCode.SUCCESS.getMessage(), relativePath, path);
     }
 
 

@@ -1,7 +1,8 @@
 package com.fons.cloud.lock.service.impl;
 
+import cn.hutool.core.lang.Assert;
+
 import com.fons.cloud.lock.service.LockService;
-import com.fons.cloud.util.AssertUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.redisson.api.RLock;
@@ -29,28 +30,28 @@ public record RedissonLockServiceImpl(RedissonClient redissonClient) implements 
 
     @Override
     public void lock(String lockName) {
-        AssertUtil.notEmpty(lockName, "Lock key should not be empty.");
+        Assert.isTrue(StringUtils.isNotBlank(lockName), () -> new RuntimeException("Lock key should not be empty."));
         RLock lock = redissonClient.getLock(lockName);
         lock.lock();
     }
 
     @Override
     public void lock(String lockName, long lockTime, TimeUnit timeUnit) {
-        AssertUtil.notEmpty(lockName, "Lock key should not be empty.");
+        Assert.isTrue(StringUtils.isNotBlank(lockName), () -> new RuntimeException("Lock key should not be empty."));
         RLock lock = redissonClient.getLock(lockName);
         lock.lock(lockTime, timeUnit);
     }
 
     @Override
     public boolean tryLock(String lockName, long timeout, TimeUnit timeUnit) throws InterruptedException {
-        AssertUtil.notEmpty(lockName, "Lock key should not be empty.");
+        Assert.isTrue(StringUtils.isNotBlank(lockName), () -> new RuntimeException("Lock key should not be empty."));
         RLock lock = redissonClient.getLock(lockName);
         return lock.tryLock(timeout, timeUnit);
     }
 
     @Override
     public boolean tryLock(String lockName, long lockTime, long timeout, TimeUnit timeUnit) throws InterruptedException {
-        AssertUtil.notEmpty(lockName, "Lock key should not be empty.");
+        Assert.isTrue(StringUtils.isNotBlank(lockName), () -> new RuntimeException("Lock key should not be empty."));
         RLock lock = redissonClient.getLock(lockName);
         return lock.tryLock(timeout, lockTime, timeUnit);
     }

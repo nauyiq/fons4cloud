@@ -1,6 +1,7 @@
 package com.fons.cloud.util.concurrent;
 
-import com.fons.cloud.util.AssertUtil;
+import cn.hutool.core.lang.Assert;
+
 import com.fons.cloud.util.MathUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
@@ -116,7 +117,7 @@ public class ConsistentHash<T> {
      * @return    节点对象
      */
     public T get(Object key) {
-        AssertUtil.notNull(key, "Hash key should not be null.");
+        Assert.notNull(key, () -> new RuntimeException("Hash key should not be null."));
         int hash = hash(key, 0);
         readWriteLock.readLock().lock();
         try {

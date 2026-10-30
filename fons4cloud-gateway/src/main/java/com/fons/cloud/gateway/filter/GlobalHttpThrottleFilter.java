@@ -71,9 +71,9 @@ public class GlobalHttpThrottleFilter implements GlobalFilter, Ordered {
         } else {
             LimitResult limitResult = httpThrottles.limitValue(requestInfo);
             if (limitResult.isNeedLimit()) {
-                String resultTip = StringUtils.isBlank(limitResult.getTip()) ? ResultCode.ILLEGAL_REQUEST_LIMITED.message : limitResult.getTip();
+                String resultTip = StringUtils.isBlank(limitResult.getTip()) ? ResultCode.ILLEGAL_REQUEST_LIMITED.getMessage() : limitResult.getTip();
                 log.warn("HttpThrottled the request: {}, {}, {}.", requestIp, uri, resultTip);
-                R<Object> failed = R.failed(resultTip, ResultCode.NOT_PERMISSION.code);
+                R<Object> failed = R.failed(resultTip, ResultCode.NOT_PERMISSION.getCode());
                 return Mono.defer(() -> {
                     DataBuffer buffer = ResponseUtil.outputBuffer(failed, httpResponse, HttpStatus.FORBIDDEN);
                     return httpResponse.writeWith(Flux.just(buffer));

@@ -5,8 +5,6 @@ import lombok.Getter;
 
 /**
  * @author qiyuan.hong
- * @version 1.0
- * @date 2024/6/24
  */
 @Getter
 public class BizException extends RuntimeException {

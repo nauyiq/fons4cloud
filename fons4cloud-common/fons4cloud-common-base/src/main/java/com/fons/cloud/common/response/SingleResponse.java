@@ -2,6 +2,7 @@ package com.fons.cloud.common.response;
 
 import com.fons.cloud.common.result.Result;
 import com.fons.cloud.common.result.ResultCode;
+import com.fons.cloud.common.result.SuccessCode;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -16,11 +17,11 @@ public class SingleResponse<T> extends Response {
     private T data;
 
     public static <T> SingleResponse<T> ok() {
-        return setResult(true, ResultCode.SUCCESS);
+        return setResult(true, SuccessCode.SUCCESS);
     }
 
     public static <T> SingleResponse<T> ok(T data) {
-        return setResult(true, ResultCode.SUCCESS, data);
+        return setResult(true, SuccessCode.SUCCESS, data);
     }
 
     public static <T> SingleResponse<T> ok(String code, String message, T data) {
@@ -28,11 +29,11 @@ public class SingleResponse<T> extends Response {
     }
 
     public static <T> SingleResponse<T> success() {
-        return setResult(true, ResultCode.SUCCESS);
+        return setResult(true, SuccessCode.SUCCESS);
     }
 
     public static <T> SingleResponse<T> success(T data) {
-        return setResult(true, ResultCode.SUCCESS, data);
+        return setResult(true, SuccessCode.SUCCESS, data);
     }
 
     public static <T> SingleResponse<T> success(String code, String message, T data) {
@@ -44,7 +45,7 @@ public class SingleResponse<T> extends Response {
     }
 
     public static <T> SingleResponse<T> failed(String message) {
-        return failed(ResultCode.FAILED.code, message);
+        return failed(ResultCode.FAILED.getCode(), message);
     }
 
     public static <T> SingleResponse<T> failed(String code, String message) {

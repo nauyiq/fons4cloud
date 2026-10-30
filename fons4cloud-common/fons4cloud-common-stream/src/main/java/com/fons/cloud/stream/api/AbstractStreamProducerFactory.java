@@ -1,6 +1,7 @@
 package com.fons.cloud.stream.api;
 
-import com.fons.cloud.util.AssertUtil;
+import cn.hutool.core.lang.Assert;
+
 import com.fons.cloud.util.concurrent.IExecutorService;
 import lombok.extern.slf4j.Slf4j;
 
@@ -14,7 +15,7 @@ public abstract class AbstractStreamProducerFactory<R> implements StreamProducer
 
     @Override
     public StreamProducer<R> create(StreamProducer.Config config) {
-        AssertUtil.notNull(config, "Stream producer config should not be null.");
+        Assert.notNull(config, () -> new RuntimeException("Stream producer config should not be null."));
 
         IExecutorService executorService = config.getExecutorService();
         if (executorService == null) {

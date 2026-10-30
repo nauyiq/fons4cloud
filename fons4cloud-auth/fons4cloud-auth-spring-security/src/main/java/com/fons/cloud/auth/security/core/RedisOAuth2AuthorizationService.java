@@ -4,7 +4,6 @@ import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.fons.cloud.common.swticher.CommonSwitcher;
 import com.fons.cloud.common.swticher.ServerSwitcher;
-import com.fons.cloud.util.AssertUtil;
 import com.fons.cloud.util.ProjectExecutors;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.collections4.CollectionUtils;
@@ -82,7 +81,7 @@ public class RedisOAuth2AuthorizationService implements OAuth2AuthorizationServi
 
     @Override
     public void remove(OAuth2Authorization authorization) {
-        AssertUtil.notNull(authorization, "authorization should not be null.");
+        cn.hutool.core.lang.Assert.notNull(authorization, () -> new RuntimeException("authorization should not be null."));
 
         List<String> keys = new ArrayList<>();
         if (isState(authorization)) {

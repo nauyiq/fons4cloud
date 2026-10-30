@@ -1,9 +1,10 @@
 package com.fons.cloud.stream.api;
 
+import cn.hutool.core.lang.Assert;
+
 import cn.hutool.core.util.StrUtil;
 import com.fons.cloud.stream.core.StreamResult;
 import com.fons.cloud.stream.core.CompletableFutureResult;
-import com.fons.cloud.util.AssertUtil;
 import com.fons.cloud.util.concurrent.ExecutorTask;
 import com.fons.cloud.util.concurrent.IExecutorService;
 import com.fons.cloud.util.concurrent.IExecutorsRepository;
@@ -27,7 +28,7 @@ public abstract class AbstractStreamProducerTemplate<R> implements StreamProduce
     private volatile boolean shutdown = false;
 
     public AbstractStreamProducerTemplate(Config config) {
-        AssertUtil.notNull(config, "Create stream producer configuration should not be null.");
+        Assert.notNull(config, () -> new RuntimeException("Create stream producer configuration should not be null."));
         this.config = config;
     }
 

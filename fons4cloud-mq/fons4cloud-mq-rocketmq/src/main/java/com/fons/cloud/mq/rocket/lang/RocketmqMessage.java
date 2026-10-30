@@ -1,9 +1,10 @@
 package com.fons.cloud.mq.rocket.lang;
 
+import cn.hutool.core.lang.Assert;
+
 import com.fons.cloud.common.base.lang.StringConstants;
 import com.fons.cloud.stream.api.MessageId;
 import com.fons.cloud.stream.common.AbstractStreamMessage;
-import com.fons.cloud.util.AssertUtil;
 import org.apache.commons.lang3.StringUtils;
 
 /**
@@ -49,7 +50,7 @@ public class RocketmqMessage extends AbstractStreamMessage<String, Object> {
     }
 
     public RocketmqMessage addOrderlyHash(String hashkey) {
-        AssertUtil.notEmpty(hashkey, "orderly hashkey should not be empty.");
+        Assert.isTrue(StringUtils.isNotBlank(hashkey), () -> new RuntimeException("orderly hashkey should not be empty."));
         addProperty(RocketmqConstants.ORDERLY_HASH, hashkey);
         return this;
     }

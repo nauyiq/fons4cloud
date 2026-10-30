@@ -21,7 +21,7 @@ public class MessageQueueException extends RuntimeException {
     public String code;
 
     public MessageQueueException(String message) {
-        this(ResultCode.SYSTEM_BUSY.code, message);
+        this(ResultCode.SYSTEM_BUSY.getCode(), message);
     }
 
     public MessageQueueException(String code, String message) {
@@ -34,7 +34,7 @@ public class MessageQueueException extends RuntimeException {
         this.code = code;
     }
     public MessageQueueException(Throwable cause) {
-        this(ResultCode.SYSTEM_BUSY.code, cause);
+        this(ResultCode.SYSTEM_BUSY.getCode(), cause);
     }
 
     public MessageQueueException(String code, Throwable cause) {

@@ -1,8 +1,9 @@
 package com.fons.cloud.mq.rabbit.dynamic;
 
+import cn.hutool.core.lang.Assert;
+
 import cn.hutool.core.convert.Convert;
 import com.fons.cloud.mq.rabbit.lang.RabbitConstants;
-import com.fons.cloud.util.AssertUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
@@ -122,10 +123,10 @@ public class RabbitModuleInitializer implements SmartInitializingSingleton {
         RabbitMetadata.Exchange exchange = rabbitMetadata.getExchange();
         ExchangeEnum exchangeType = exchange.getType();
 
-        AssertUtil.isFalse(exchangeType != ExchangeEnum.FANOUT && StringUtils.isBlank(rootingKey), "只有交互机类型是FANOUT模式, rootingKey才能为空.");
-        AssertUtil.notNull(exchangeType, rootingKey + "绑定的交换机未配置.");
-        AssertUtil.notEmpty(exchange.getName(), rootingKey + "绑定交换机名称不能为空.");
-        AssertUtil.notNull(queue, rootingKey + "未配置queue.");
-        AssertUtil.notEmpty(queue.getName(), rootingKey + "配置的queue.name不能为空.");
+        Assert.isFalse(exchangeType != ExchangeEnum.FANOUT && StringUtils.isBlank(rootingKey), () -> new RuntimeException("只有交互机类型是FANOUT模式, rootingKey才能为空."));
+        Assert.notNull(exchangeType, () -> new RuntimeException(rootingKey + "绑定的交换机未配置."));
+        Assert.isTrue(StringUtils.isNotBlank(exchange.getName()), () -> new RuntimeException(rootingKey + "绑定交换机名称不能为空."));
+        Assert.notNull(queue, () -> new RuntimeException(rootingKey + "未配置queue."));
+        Assert.isTrue(StringUtils.isNotBlank(queue.getName()), () -> new RuntimeException(rootingKey + "配置的queue.name不能为空."));
     }
 }

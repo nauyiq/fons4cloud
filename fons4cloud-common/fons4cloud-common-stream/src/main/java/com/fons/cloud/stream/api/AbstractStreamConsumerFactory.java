@@ -1,6 +1,6 @@
 package com.fons.cloud.stream.api;
 
-import com.fons.cloud.util.AssertUtil;
+import cn.hutool.core.lang.Assert;
 
 /**
  * @author qiyuan.hong
@@ -11,7 +11,7 @@ public abstract class AbstractStreamConsumerFactory implements StreamConsumerFac
 
     @Override
     public  StreamConsumer create(StreamConsumer.Config config) {
-        AssertUtil.notNull(config, "Consumer config should not be null.");
+        Assert.notNull(config, () -> new RuntimeException("Consumer config should not be null."));
 
         return doCreate(config);
     }

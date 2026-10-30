@@ -1,5 +1,7 @@
 package com.fons.cloud.util;
 
+import cn.hutool.core.lang.Assert;
+
 import com.fons.cloud.common.base.lang.StringConstants;
 import lombok.extern.slf4j.Slf4j;
 
@@ -101,7 +103,7 @@ public class ReflectUtils {
     private static final Map<Class<?>, Field[]> DECLARED_FIELDS_CACHE = new ConcurrentHashMap<>(32);
 
     private static Field[] getDeclaredFields(Class<?> clazz) {
-        AssertUtil.notNull(clazz, "Class must not be null");
+        Assert.notNull(clazz, () -> new RuntimeException("Class must not be null"));
         Field[] result = DECLARED_FIELDS_CACHE.get(clazz);
         if (Objects.isNull(result)) {
             try {

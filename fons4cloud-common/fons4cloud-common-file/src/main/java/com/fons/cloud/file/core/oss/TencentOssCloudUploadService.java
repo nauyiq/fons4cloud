@@ -1,5 +1,7 @@
 package com.fons.cloud.file.core.oss;
 
+import cn.hutool.core.lang.Assert;
+
 import cn.hutool.core.util.StrUtil;
 import com.aliyuncs.utils.IOUtils;
 import com.fons.cloud.common.base.lang.StringConstants;
@@ -13,7 +15,6 @@ import com.fons.cloud.file.common.result.UploadResult;
 import com.fons.cloud.file.config.UploadFileProperties;
 import com.fons.cloud.file.core.DefaultResultUploadResponse;
 import com.fons.cloud.file.core.UploadContext;
-import com.fons.cloud.util.AssertUtil;
 import com.qcloud.cos.COSClient;
 import com.qcloud.cos.ClientConfig;
 import com.qcloud.cos.auth.BasicCOSCredentials;
@@ -64,8 +65,8 @@ public class TencentOssCloudUploadService extends AbstractUploadFileService impl
     public TencentOssCloudUploadService(String bucketName, UploadFileProperties properties) {
         super(properties);
         CloudSecret cloudSecret = properties.getOss();
-        AssertUtil.isFalse(Objects.isNull(cloudSecret) || StringUtils.isAnyBlank(cloudSecret.getSecretId(), cloudSecret.getSecretKey())
-                , "Tencent secret should not be empty.");
+        Assert.isFalse(Objects.isNull(cloudSecret) || StringUtils.isAnyBlank(cloudSecret.getSecretId(), cloudSecret.getSecretKey())
+                , () -> new RuntimeException("Tencent secret should not be empty."));
         // create cos client
         this.transferManager = createTransferManager(properties, cloudSecret);
         if (StringUtils.isBlank(bucketName)) {

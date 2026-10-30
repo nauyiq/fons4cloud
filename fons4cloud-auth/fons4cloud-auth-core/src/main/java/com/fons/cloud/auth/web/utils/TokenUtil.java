@@ -1,6 +1,7 @@
-package com.fons.cloud.web.utils;
+package com.fons.cloud.auth.web.utils;
 
 /**
+ * 一次性Token的ThreadLocal持有器，供 TokenFilter 与下游业务在单次请求内传递。
  * @author qiyuan.hong
  * @date 2024/7/18
  */
@@ -27,8 +28,5 @@ public class TokenUtil {
     public static void set(String token) {
         TOKEN_THREADLOCAL.set(token);
     }
-
-
-
 
 }

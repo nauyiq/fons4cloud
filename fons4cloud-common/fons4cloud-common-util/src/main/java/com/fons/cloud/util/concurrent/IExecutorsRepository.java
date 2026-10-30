@@ -1,8 +1,11 @@
 package com.fons.cloud.util.concurrent;
 
+import org.apache.commons.lang3.StringUtils;
+
+import cn.hutool.core.lang.Assert;
+
 import cn.hutool.core.map.MapUtil;
 import com.fons.cloud.common.swticher.CommonSwitcher;
-import com.fons.cloud.util.AssertUtil;
 import com.fons.cloud.util.thread.NamedThreadFactory;
 import lombok.extern.slf4j.Slf4j;
 
@@ -29,18 +32,18 @@ public class IExecutorsRepository extends Thread {
     }
 
     public static IExecutorService getExecutor(String name) {
-        AssertUtil.notEmpty(name, "Executor name should not be empty.");
+        Assert.isTrue(StringUtils.isNotBlank(name), () -> new RuntimeException("Executor name should not be empty."));
         return I_EXECUTOR_SERVICE_MAP.get(name);
     }
 
     public static void setExecutor(String name, IExecutorService executorService) {
-        AssertUtil.notEmpty(name, "Executor name should not be empty.");
-        AssertUtil.notNull(executorService, "Executor service should not be null.");
+        Assert.isTrue(StringUtils.isNotBlank(name), () -> new RuntimeException("Executor name should not be empty."));
+        Assert.notNull(executorService, () -> new RuntimeException("Executor service should not be null."));
         I_EXECUTOR_SERVICE_MAP.put(name, executorService);
     }
 
     public static IExecutorService newExecutor(String name) {
-        AssertUtil.notEmpty(name, "Executor name should not be empty.");
+        Assert.isTrue(StringUtils.isNotBlank(name), () -> new RuntimeException("Executor name should not be empty."));
         if (I_EXECUTOR_SERVICE_MAP.containsKey(name)) {
             return I_EXECUTOR_SERVICE_MAP.get(name);
         }
@@ -50,7 +53,7 @@ public class IExecutorsRepository extends Thread {
     }
 
     public static IExecutorService newExecutor(String name, int coreSize, int maxSize) {
-        AssertUtil.notEmpty(name, "Executor name should not be empty.");
+        Assert.isTrue(StringUtils.isNotBlank(name), () -> new RuntimeException("Executor name should not be empty."));
         if (I_EXECUTOR_SERVICE_MAP.containsKey(name)) {
             return I_EXECUTOR_SERVICE_MAP.get(name);
         }
@@ -61,7 +64,7 @@ public class IExecutorsRepository extends Thread {
 
 
     public static ScheduledExecutorService newScheduledExecutor(String name) {
-        AssertUtil.notEmpty(name, "Executor name should not be empty.");
+        Assert.isTrue(StringUtils.isNotBlank(name), () -> new RuntimeException("Executor name should not be empty."));
         if (SCHEDULED_EXECUTOR_SERVICE_MAP.containsKey(name)) {
             return SCHEDULED_EXECUTOR_SERVICE_MAP.get(name);
         }
@@ -71,7 +74,7 @@ public class IExecutorsRepository extends Thread {
     }
 
     public static ScheduledExecutorService newSingleScheduledExecutor(String name) {
-        AssertUtil.notEmpty(name, "Executor name should not be empty.");
+        Assert.isTrue(StringUtils.isNotBlank(name), () -> new RuntimeException("Executor name should not be empty."));
         if (SCHEDULED_EXECUTOR_SERVICE_MAP.containsKey(name)) {
             return SCHEDULED_EXECUTOR_SERVICE_MAP.get(name);
         }

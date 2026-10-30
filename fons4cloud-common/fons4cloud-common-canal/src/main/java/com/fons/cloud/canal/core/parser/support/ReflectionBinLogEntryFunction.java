@@ -1,9 +1,10 @@
 package com.fons.cloud.canal.core.parser.support;
 
+import cn.hutool.core.lang.Assert;
+
 import com.fons.cloud.canal.core.parser.BaseCommonEntryFunction;
 import com.fons.cloud.canal.core.parser.ColumnMetadata;
 import com.fons.cloud.canal.core.parser.ModelTableMetadata;
-import com.fons.cloud.util.AssertUtil;
 import com.fons.cloud.util.ReflectUtils;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -38,7 +39,7 @@ public class ReflectionBinLogEntryFunction<T> extends BaseCommonEntryFunction<T>
                     String fieldName = field.getName();
                     ColumnMetadata columnMetadata = fieldColumnMapping.get(fieldName);
                     // 理论上这里不会为NULL,谨慎起见避免低端NPE做个断言
-                    AssertUtil.notNull(columnMetadata, String.format("[%s.%s]属性获取列属性元数据失败", klass.getSimpleName(), fieldName));
+                    Assert.notNull(columnMetadata, () -> new RuntimeException(String.format("[%s.%s]属性获取列属性元数据失败", klass.getSimpleName(), fieldName)));
                     String value = data.get(columnMetadata.getColumnName());
                     if (null != value) {
                         Object convertValue = columnMetadata.getConverter().convert(value);

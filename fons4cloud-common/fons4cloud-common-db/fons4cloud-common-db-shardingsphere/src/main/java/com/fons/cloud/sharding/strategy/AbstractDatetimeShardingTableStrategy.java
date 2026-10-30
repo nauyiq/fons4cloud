@@ -1,11 +1,14 @@
 package com.fons.cloud.sharding.strategy;
 
+import org.apache.commons.lang3.StringUtils;
+
+import cn.hutool.core.lang.Assert;
+
 import cn.hutool.core.date.DateField;
 import cn.hutool.core.date.DateTime;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.StrUtil;
 import com.fons.cloud.common.swticher.CommonSwitcher;
-import com.fons.cloud.util.AssertUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 
@@ -21,8 +24,8 @@ public abstract class AbstractDatetimeShardingTableStrategy implements DatetimeS
 
     @Override
     public String sharding(Date shardingValue, String logicTableName) {
-        AssertUtil.notNull(shardingValue, "Sharding date should not be null");
-        AssertUtil.notNull(logicTableName, "Logic table name should not be empty");
+        Assert.notNull(shardingValue, () -> new RuntimeException("Sharding date should not be null"));
+        Assert.notNull(logicTableName, () -> new RuntimeException("Logic table name should not be empty"));
         return logicTableName + StrUtil.UNDERLINE + DateUtil.format(shardingValue, getPattern());
     }
 
@@ -49,7 +52,7 @@ public abstract class AbstractDatetimeShardingTableStrategy implements DatetimeS
 
     private Date getDateFromTableName(String tableName) {
         String pattern = getPattern();
-        AssertUtil.notEmpty(pattern, "Sharding table data pattern should not be empty.");
+        Assert.isTrue(StringUtils.isNotBlank(pattern), () -> new RuntimeException("Sharding table data pattern should not be empty."));
         try {
             // 默认分表表名规则为logicTableName_pattern
             String dataValue = tableName.substring(tableName.lastIndexOf(StrUtil.UNDERLINE) + 1);

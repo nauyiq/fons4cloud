@@ -1,6 +1,6 @@
 package com.fons.cloud.canal.core;
 
-import com.fons.cloud.util.AssertUtil;
+import cn.hutool.core.lang.Assert;
 
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
@@ -19,10 +19,10 @@ public class BaseParameterizedTypeReferenceSupport<T> {
     public BaseParameterizedTypeReferenceSupport() {
         childKlass = getClass();
         Type type = findParameterizedTypeReferenceSubClass(childKlass);
-        AssertUtil.isInstanceOf(ParameterizedType.class, type, "Type must be a parameterized type");
+        Assert.isInstanceOf(ParameterizedType.class, type, "Type must be a parameterized type");
         ParameterizedType parameterizedType = (ParameterizedType) type;
         Type[] actualTypeArguments = parameterizedType.getActualTypeArguments();
-        AssertUtil.isTrue(actualTypeArguments.length == 1, "Number of type arguments must be 1");
+        Assert.isTrue(actualTypeArguments.length == 1, () -> new RuntimeException("Number of type arguments must be 1"));
         this.klass = (Class<T>) actualTypeArguments[0];
     }
 

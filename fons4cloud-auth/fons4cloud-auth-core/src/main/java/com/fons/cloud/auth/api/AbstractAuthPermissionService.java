@@ -1,10 +1,11 @@
 package com.fons.cloud.auth.api;
 
+import cn.hutool.core.lang.Assert;
+
 import com.alibaba.fastjson2.JSON;
 import com.fons.cloud.auth.core.AuthorizationResourceRepository;
 import com.fons.cloud.auth.utils.AuthUtils;
 import com.fons.cloud.auth.utils.StaticEndpointAuthorizationManager;
-import com.fons.cloud.util.AssertUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
@@ -34,7 +35,7 @@ public abstract class AbstractAuthPermissionService implements AuthPermissionSer
 
     @Override
     public final boolean isPermitAnonymousRequest(AuthenticationRequest request) {
-        AssertUtil.notNull(request, "AuthenticationRequest should not be null.");
+        Assert.notNull(request, () -> new RuntimeException("AuthenticationRequest should not be null."));
         if (HttpMethod.OPTIONS.name().equalsIgnoreCase(request.method())) {
             return true;
         }
@@ -43,7 +44,7 @@ public abstract class AbstractAuthPermissionService implements AuthPermissionSer
 
     @Override
     public final boolean isPermitRequest(AuthenticationRequest request) {
-        AssertUtil.notNull(request, "AuthenticationRequest should not be null.");
+        Assert.notNull(request, () -> new RuntimeException("AuthenticationRequest should not be null."));
         if (isPermitAnonymousRequest(request)) {
             return true;
         }

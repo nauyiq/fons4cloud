@@ -2,7 +2,7 @@ package com.fons.cloud.common.response;
 
 import com.fons.cloud.common.result.PageResult;
 import com.fons.cloud.common.result.Result;
-import com.fons.cloud.common.result.ResultCode;
+import com.fons.cloud.common.result.SuccessCode;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -46,7 +46,7 @@ public class MultiResponse<T> extends Response {
 
 
     public static <T> MultiResponse<T> ok(List<T> data, long total, int page, int size) {
-        return new MultiResponse<T>(true, ResultCode.SUCCESS.code, ResultCode.SUCCESS.message, data, total, page, size);
+        return new MultiResponse<T>(true, SuccessCode.SUCCESS.getCode(), SuccessCode.SUCCESS.getMessage(), data, total, page, size);
     }
 
 

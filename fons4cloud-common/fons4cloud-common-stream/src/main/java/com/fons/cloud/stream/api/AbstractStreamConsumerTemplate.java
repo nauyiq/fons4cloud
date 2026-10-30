@@ -1,7 +1,8 @@
 package com.fons.cloud.stream.api;
 
+import cn.hutool.core.lang.Assert;
+
 import com.fons.cloud.stream.common.StreamConstants;
-import com.fons.cloud.util.AssertUtil;
 import com.fons.cloud.util.concurrent.IExecutorService;
 import com.fons.cloud.util.concurrent.IExecutorsRepository;
 import lombok.extern.slf4j.Slf4j;
@@ -18,7 +19,7 @@ public abstract class AbstractStreamConsumerTemplate implements StreamConsumer {
     private volatile State state;
 
     public AbstractStreamConsumerTemplate(Config config, StreamMessageListener streamMessageListener) {
-        AssertUtil.notNull(config, "Config should not be null.");
+        Assert.notNull(config, () -> new RuntimeException("Config should not be null."));
         this.config = config;
         this.listener = streamMessageListener;
         // 初始化
