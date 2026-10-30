@@ -60,4 +60,3 @@ Admin 用 `GovernanceTargetAdapter` 隔离不同治理目标。网关路由通�
 | 网关运行服务 | [GatewayMain](../fons4cloud-gateway/src/main/java/com/fons/cloud/gateway/GatewayMain.java) |
 | 治理编排 | [GovernancePublishService](../fons4cloud-admin/fons4cloud-admin-service/src/main/java/com/fons/cloud/admin/application/GovernancePublishService.java) |
 | 治理目标接口 | [GovernanceTargetAdapter](../fons4cloud-admin/fons4cloud-admin-service/src/main/java/com/fons/cloud/admin/domain/adapter/GovernanceTargetAdapter.java) |
-| 应用约束参考 | [fons4cloud 接入约束](../.specify/rules/fons4cloud-接入约束.md) |
